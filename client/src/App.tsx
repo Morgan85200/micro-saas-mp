@@ -15,7 +15,7 @@ function App() {
 
   return (
     <div>
-      <h1>Health Check (Vite + React + TS)</h1>
+      <h1>Site Morgan Front-End (Vite + React + TS)</h1>
       <button onClick={testApi}>Tester la connexion API</button>
       <pre>{result}</pre>
     </div>
