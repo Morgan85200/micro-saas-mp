@@ -1,0 +1,96 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  backend:
+    name: 🧱 Backend (Symfony)
+    runs-on: ubuntu-latest
+
+    services:
+      mariadb:
+        image: mariadb:11
+        env:
+          MARIADB_ROOT_PASSWORD: root
+          MARIADB_DATABASE: app
+          MARIADB_USER: app
+          MARIADB_PASSWORD: app
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h localhost"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
+
+    steps:
+      - name: 🧾 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: ⚙️ Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: mbstring, pdo, pdo_mysql
+          coverage: none
+
+      - name: 🧩 Install dependencies
+        working-directory: ./api
+        run: composer install --no-progress --no-interaction
+
+      - name: 🧪 Lint PHP code
+        working-directory: ./api
+        run: |
+          composer require --dev phpstan/phpstan
+          vendor/bin/phpstan analyse src --level=5
+
+      - name: 🔍 Test DB connection
+        env:
+          DATABASE_URL: "mysql://app:app@127.0.0.1:3306/app"
+        working-directory: ./api
+        run: php bin/console doctrine:query:sql "SELECT 1"
+
+  frontend:
+    name: 💻 Frontend (React + Vite)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 🧾 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 🟩 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: client/package-lock.json
+
+      - name: 📦 Install dependencies
+        working-directory: ./client
+        run: npm ci
+
+      - name: 🔍 Lint frontend
+        working-directory: ./client
+        run: npm run lint --if-present
+
+      - name: 🧱 Build frontend
+        working-directory: ./client
+        run: npm run build
+
+  docker:
+    name: 🐳 Docker Build Validation
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 🧾 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 🔧 Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: 🔍 Validate Docker Compose build
+        run: docker compose build --no-cache
