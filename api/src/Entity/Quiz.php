@@ -19,14 +19,29 @@ class Quiz
     #[ORM\ManyToOne(inversedBy: 'quizzes')]
     private ?anime $anime = null;
 
-    #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)]
-    private ?\DateTime $quizDate = null;
+    #[ORM\Column(type: Types::DATE_MUTABLE)]
+    private ?\DateTime $quizDate;
 
     /**
      * @var Collection<int, Hint>
      */
-    #[ORM\OneToMany(targetEntity: Hint::class, mappedBy: 'quiz')]
+    #[ORM\OneToMany(
+        targetEntity: Hint::class,
+        mappedBy: 'quiz',
+        cascade: ['persist', 'remove'],
+        orphanRemoval: true
+    )]
+    #[ORM\OrderBy(['orderNumber' => 'ASC'])]
     private Collection $hints;
+
+    #[ORM\Column(length: 50)]
+    private ?string $quizType = null;
+
+    #[ORM\Table(
+        uniqueConstraints: [
+            new ORM\UniqueConstraint(columns: ['quiz_date', 'quiz_type'])
+        ]
+    )]    
 
     public function __construct()
     {
@@ -88,6 +103,18 @@ class Quiz
                 $hint->setQuiz(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getQuizType(): ?string
+    {
+        return $this->quizType;
+    }
+
+    public function setQuizType(string $quizType): static
+    {
+        $this->quizType = $quizType;
 
         return $this;
     }

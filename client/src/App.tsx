@@ -1,4 +1,6 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { Link } from "react-router-dom";
+
 import Homepage from "./pages/Homepage";
 import AnimeListPage from "./pages/AnimeListPage";
 import AnimeCreatePage from "./pages/AnimeCreatePage";
@@ -8,16 +10,20 @@ import GenreListPage from "./pages/GenreListPage";
 import GenreCreatePage from "./pages/GenreCreatePage";
 import GenreEditPage from "./pages/GenreEditPage";
 
+import QuizListPage from "./pages/QuizListPage";
+import QuizCreatePage from "./pages/QuizCreatePage";
+import QuizEditPage from "./pages/QuizEditPage";
+
 function App() {
   return (
     <Router>
       <header>
         <h1>Site Morgan Front-End</h1>
         <nav>
-          <a href="/">Home</a>
-          <a href="/anime">Anime</a>
-          <a href="/genres">Genres</a>
-          {/* You can add Genre, Quiz, etc. links here */}
+          <Link to="/">Home</Link>
+          <Link to="/anime">Anime</Link>
+          <Link to="/genres">Genres</Link>
+          <Link to="/quizzes">Liste des quizz</Link>
         </nav>
       </header>
 
@@ -32,6 +38,11 @@ function App() {
           <Route path="/genres" element={<GenreListPage />} />
           <Route path="/genres/create" element={<GenreCreatePage />} />
           <Route path="/genres/edit/:id" element={<GenreEditPage />} />
+
+          <Route path="/quizzes" element={<QuizListPage />} />
+          <Route path="/quizzes/create" element={<QuizCreatePage />} />
+          <Route path="/quizzes/edit/:id" element={<QuizEditPage />} />
+
         </Routes>
       </main>
     </Router>

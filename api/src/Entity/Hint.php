@@ -23,7 +23,7 @@ class Hint
     #[ORM\Column(length: 255)]
     private ?string $hintText = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(length: 255, nullable: true)]
     private ?string $hintImage = null;
 
     #[ORM\Column(length: 255, nullable: true)]
