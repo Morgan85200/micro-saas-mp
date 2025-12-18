@@ -109,43 +109,68 @@ function QuizCreatePage() {
 
         {hints.map((hint, index) => (
           <div key={index} className="hint-block">
-            <input
-              type="number"
-              min={1}
-              value={hint.orderNumber}
-              onChange={(e) => {
-                const copy = [...hints];
-                copy[index].orderNumber = Number(e.target.value);
-                setHints(copy);
-              }}
-            />
+            {/* Header */}
+            <div className="hint-header">
+              <strong>Hint #{index + 1}</strong>
 
-            <select
-              value={hint.hintType}
-              onChange={(e) => {
-                const copy = [...hints];
-                copy[index].hintType = e.target.value as "text" | "image";
-                setHints(copy);
-              }}
-            >
-              <option value="text">Text</option>
-              <option value="image">Image</option>
-            </select>
+              <button
+                type="button"
+                onClick={() => {
+                  const copy = [...hints];
+                  copy.splice(index, 1);
+                  setHints(copy);
+                }}
+              >
+                ❌ Remove
+              </button>
+            </div>
 
-            {/* ALWAYS visible */}
-            <textarea
-              value={hint.hintText}
-              onChange={(e) => {
-                const copy = [...hints];
-                copy[index].hintText = e.target.value;
-                setHints(copy);
-              }}
-              placeholder="Hint text"
-            />
+            <div className="form-group">
+              <label>Order number</label>
+              <input
+                type="number"
+                min={1}
+                value={hint.orderNumber}
+                onChange={(e) => {
+                  const copy = [...hints];
+                  copy[index].orderNumber = Number(e.target.value);
+                  setHints(copy);
+                }}
+              />
+            </div>
 
-            {/* ONLY if image */}
+            <div className="form-group">
+              <label>Hint type</label>
+              <select
+                value={hint.hintType}
+                onChange={(e) => {
+                  const copy = [...hints];
+                  copy[index].hintType = e.target.value as "text" | "image";
+                  setHints(copy);
+                }}
+              >
+                <option value="text">Text</option>
+                <option value="image">Image</option>
+              </select>
+            </div>
+
+            <div className="form-group">
+              <label>Hint text</label>
+              <textarea
+                value={hint.hintText}
+                onChange={(e) => {
+                  const copy = [...hints];
+                  copy[index].hintText = e.target.value;
+                  setHints(copy);
+                }}
+                placeholder="Enter hint text..."
+              />
+            </div>
+
             {hint.hintType === "image" && (
-              <div className="hint-image-section">
+              <div className="form-group">
+                <label>Hint image</label>
+
                 <input
                   type="file"
                   accept="image/*"

@@ -54,17 +54,25 @@ function QuizEditPage() {
     formData.append("quizType", quizType);
 
     hints.forEach((hint, index) => {
-      formData.append(`hints[${index}][orderNumber]`, hint.orderNumber.toString());
-      formData.append(`hints[${index}][hintText]`, hint.hintText);
-      formData.append(`hints[${index}][hintType]`, hint.hintType);
-
-      if (hint.hintType === "image" && hint.hintImageFile) {
-        formData.append(`hints[${index}][hintImage]`, hint.hintImageFile);
+      formData.append(`hints[${index}][orderNumber]`, hint.orderNumber.toString())
+      formData.append(`hints[${index}][hintText]`, hint.hintText)
+      formData.append(`hints[${index}][hintType]`, hint.hintType)
+    
+      if (hint.hintType === "image") {
+        // If a new file was uploaded, send it
+        if (hint.hintImageFile) {
+          formData.append(`hints[${index}][hintImage]`, hint.hintImageFile)
+        }
+        // NEW: Send existing image filename to preserve it
+        else if (hint.hintImage) {
+          formData.append(`hints[${index}][existingImage]`, hint.hintImage)
+        }
       }
-    });
+    })
 
+    formData.append("_method", "PUT");
     await fetch(`http://localhost:8080/api/quizzes/${id}`, {
-      method: "POST", // or PUT if you adapt backend
+      method: "POST",
       body: formData,
     });
 
@@ -90,40 +98,68 @@ function QuizEditPage() {
 
         {hints.map((hint, index) => (
           <div key={index} className="hint-block">
-            <input
-              type="number"
-              min={1}
-              value={hint.orderNumber}
-              onChange={(e) => {
-                const copy = [...hints];
-                copy[index].orderNumber = Number(e.target.value);
-                setHints(copy);
-              }}
-            />
+            {/* Header */}
+            <div className="hint-header">
+              <strong>Hint #{index + 1}</strong>
 
-            <select
-              value={hint.hintType}
-              onChange={(e) => {
-                const copy = [...hints];
-                copy[index].hintType = e.target.value as "text" | "image";
-                setHints(copy);
-              }}
-            >
-              <option value="text">Text</option>
-              <option value="image">Image</option>
-            </select>
+              <button
+                type="button"
+                onClick={() => {
+                  const copy = [...hints];
+                  copy.splice(index, 1);
+                  setHints(copy);
+                }}
+              >
+                ❌ Remove
+              </button>
+            </div>
 
-            <textarea
-              value={hint.hintText}
-              onChange={(e) => {
-                const copy = [...hints];
-                copy[index].hintText = e.target.value;
-                setHints(copy);
-              }}
-            />
+            <div className="form-group">
+              <label>Order number</label>
+              <input
+                type="number"
+                min={1}
+                value={hint.orderNumber}
+                onChange={(e) => {
+                  const copy = [...hints];
+                  copy[index].orderNumber = Number(e.target.value);
+                  setHints(copy);
+                }}
+              />
+            </div>
+
+            <div className="form-group">
+              <label>Hint type</label>
+              <select
+                value={hint.hintType}
+                onChange={(e) => {
+                  const copy = [...hints];
+                  copy[index].hintType = e.target.value as "text" | "image";
+                  setHints(copy);
+                }}
+              >
+                <option value="text">Text</option>
+                <option value="image">Image</option>
+              </select>
+            </div>
+
+            <div className="form-group">
+              <label>Hint text</label>
+              <textarea
+                value={hint.hintText}
+                onChange={(e) => {
+                  const copy = [...hints];
+                  copy[index].hintText = e.target.value;
+                  setHints(copy);
+                }}
+                placeholder="Enter hint text..."
+              />
+            </div>
 
             {hint.hintType === "image" && (
-              <>
+              <div className="form-group">
+                <label>Hint image</label>
+
                 <input
                   type="file"
                   accept="image/*"
@@ -141,14 +177,15 @@ function QuizEditPage() {
                 {hint.hintImagePreview && (
                   <img
                     src={hint.hintImagePreview}
-                    alt="Preview"
+                    alt="Hint preview"
                     className="hint-image-preview"
                   />
                 )}
-              </>
+              </div>
             )}
           </div>
         ))}
+
 
         <div className="form-actions">
           <button

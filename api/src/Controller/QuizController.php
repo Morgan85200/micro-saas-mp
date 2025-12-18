@@ -133,7 +133,7 @@ class QuizController extends AbstractController
         return new JsonResponse(['message' => 'Quiz created'], 201);
     }
 
-    #[Route('/{id}', methods: ['PUT'])]
+    #[Route('/{id}', methods: ['PUT', 'POST'])]
     public function update(
         int $id,
         Request $request,
@@ -141,12 +141,14 @@ class QuizController extends AbstractController
         QuizRepository $repo,
         AnimeRepository $animeRepo
     ): JsonResponse {
+        
         $quiz = $repo->find($id);
         if (!$quiz) {
             return new JsonResponse(['error' => 'Not found'], 404);
         }
 
-        $data = json_decode($request->getContent(), true);
+        $data = $request->request->all();
+        $files = $request->files->all();
 
         if (isset($data['animeId'])) {
             $anime = $animeRepo->find($data['animeId']);
@@ -162,18 +164,36 @@ class QuizController extends AbstractController
         if (isset($data['quizType'])) {
             $quiz->setQuizType($data['quizType']);
         }
-
-        // Replace hints
-        foreach ($quiz->getHints() as $hint) {
-            $quiz->removeHint($hint);
+        
+        // 🔥 Properly delete old hints
+        foreach ($quiz->getHints() as $oldHint) {
+            $quiz->removeHint($oldHint);
+            $em->remove($oldHint);
         }
 
-        foreach ($data['hints'] ?? [] as $h) {
+        // Recreate hints from form
+        foreach ($data['hints'] ?? [] as $index => $h) {
             $hint = new Hint();
-            $hint->setOrderNumber($h['orderNumber']);
+            $hint->setOrderNumber((int) $h['orderNumber']);
             $hint->setHintText($h['hintText']);
-            $hint->setHintImage($h['hintImage'] ?? null);
             $hint->setHintType($h['hintType'] ?? null);
+
+            if (($h['hintType'] ?? null) === 'image') {
+                // Check if a new file was uploaded
+                if (isset($files['hints'][$index]['hintImage'])) {
+                    $file = $files['hints'][$index]['hintImage'];
+                    $filename = uniqid().'_'.$file->getClientOriginalName();
+
+                    $uploadDir = $this->getParameter('kernel.project_dir').'/public/uploads/hints';
+                    $file->move($uploadDir, $filename);
+
+                    $hint->setHintImage($filename);
+                } elseif (isset($h['existingImage']) && !empty($h['existingImage'])) {
+                    // Preserve the existing image filename
+                    $hint->setHintImage($h['existingImage']);
+                }
+            }
+
             $quiz->addHint($hint);
         }
 
@@ -181,6 +201,7 @@ class QuizController extends AbstractController
 
         return new JsonResponse(['message' => 'Quiz updated']);
     }
+
 
     #[Route('/{id}', methods: ['DELETE'])]
     public function delete(int $id, EntityManagerInterface $em, QuizRepository $repo): JsonResponse
