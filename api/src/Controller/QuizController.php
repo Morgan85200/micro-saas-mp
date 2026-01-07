@@ -2,9 +2,12 @@
 
 namespace App\Controller;
 
-use App\Entity\Quiz;
 use App\Entity\Hint;
+use App\Entity\Quiz;
+use App\Entity\QuizAttempt;
+use App\Entity\User;
 use App\Repository\QuizRepository;
+use App\Repository\QuizAttemptRepository;
 use App\Repository\AnimeRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -215,6 +218,65 @@ class QuizController extends AbstractController
         $em->flush();
 
         return new JsonResponse(['message' => 'Quiz deleted']);
+    }
+
+    #[Route('/{id}/attempt', methods: ['POST'])]
+    public function attempt(
+        int $id,
+        Request $request,
+        QuizRepository $repo,
+        QuizAttemptRepository $attemptRepository,
+        EntityManagerInterface $em
+    ): JsonResponse {
+        $user = $this->getUser();
+        if (!$user instanceof User) {
+            return new JsonResponse(['error' => 'Unauthorized'], 401);
+        }
+
+        $quiz = $repo->find($id);
+        if (!$quiz) {
+            return new JsonResponse(['error' => 'Not found'], 404);
+        }
+
+        $existing = $attemptRepository->findOneBy([
+            'user' => $user,
+            'quiz' => $quiz,
+        ]);
+
+        if ($existing) {
+            return new JsonResponse(['error' => 'Attempt already exists'], 409);
+        }
+
+        $data = json_decode($request->getContent(), true);
+        $status = $data['status'] ?? null;
+        $hintsUsed = (int) ($data['hintsUsed'] ?? 0);
+        $guessValue = isset($data['guessValue']) ? trim((string) $data['guessValue']) : null;
+
+        if (!in_array($status, ['won', 'lost'], true)) {
+            return new JsonResponse(['error' => 'status must be won or lost'], 400);
+        }
+
+        if ($hintsUsed <= 0) {
+            return new JsonResponse(['error' => 'hintsUsed must be greater than 0'], 400);
+        }
+
+        $attempt = new QuizAttempt();
+        $attempt->setUser($user);
+        $attempt->setQuiz($quiz);
+        $attempt->setStatus($status);
+        $attempt->setHintsUsed($hintsUsed);
+        $attempt->setGuessValue($guessValue ?: null);
+
+        $em->persist($attempt);
+        $em->flush();
+
+        return new JsonResponse([
+            'id' => $attempt->getId(),
+            'status' => $attempt->getStatus(),
+            'hintsUsed' => $attempt->getHintsUsed(),
+            'guessValue' => $attempt->getGuessValue(),
+            'guessedAt' => $attempt->getGuessedAt()?->format(DATE_ATOM),
+        ], 201);
     }
 
     private function quizToJson(Quiz $quiz): JsonResponse

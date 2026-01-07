@@ -10,7 +10,7 @@ FROM php:8.2-cli
 WORKDIR /app
 COPY --from=build /app ./
 RUN apt-get update && apt-get install -y \
-    libzip-dev unzip git mariadb-client \
-    && docker-php-ext-install pdo_mysql zip
+    libzip-dev libsodium-dev unzip git mariadb-client \
+    && docker-php-ext-install pdo_mysql zip sodium
 EXPOSE 8080
 CMD ["php", "-S", "0.0.0.0:8080", "-t", "public"]

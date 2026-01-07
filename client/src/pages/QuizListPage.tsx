@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import Spinner from "../components/Spinner";
+import { useAuth } from "../auth/AuthContext";
+import { authHeaders } from "../auth/authHeaders";
 
 interface Quiz {
   id: number;
@@ -18,6 +20,7 @@ function QuizListPage() {
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const { token } = useAuth();
 
   const fetchQuizzes = async (page: number) => {
     setLoading(true);
@@ -40,6 +43,7 @@ function QuizListPage() {
 
     await fetch(`http://localhost:8080/api/quizzes/${id}`, {
       method: "DELETE",
+      headers: authHeaders(token),
     });
     fetchQuizzes(page);
   };

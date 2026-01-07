@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Spinner from "../components/Spinner";
+import { useAuth } from "../auth/AuthContext";
+import { authHeaders } from "../auth/authHeaders";
 
 interface Genre {
   id: number;
@@ -12,6 +14,7 @@ function GenreEditPage() {
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const { token } = useAuth();
 
   useEffect(() => {
     fetch(`http://localhost:8080/api/genres/${id}`)
@@ -30,7 +33,7 @@ function GenreEditPage() {
     e.preventDefault();
     await fetch(`http://localhost:8080/api/genres/${id}`, {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
+      headers: authHeaders(token, { "Content-Type": "application/json" }),
       body: JSON.stringify({ name }),
     });
     navigate("/genres");

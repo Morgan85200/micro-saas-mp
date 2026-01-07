@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { useAuth } from "../auth/AuthContext";
+import { authHeaders } from "../auth/authHeaders";
 
 type HintForm = {
   id?: number;
@@ -19,6 +21,7 @@ function QuizEditPage() {
   const [quizDate, setQuizDate] = useState("");
   const [quizType, setQuizType] = useState("anime");
   const [hints, setHints] = useState<HintForm[]>([]);
+  const { token } = useAuth();
 
   useEffect(() => {
     fetch(`http://localhost:8080/api/quizzes/${id}`)
@@ -73,6 +76,7 @@ function QuizEditPage() {
     formData.append("_method", "PUT");
     await fetch(`http://localhost:8080/api/quizzes/${id}`, {
       method: "POST",
+      headers: authHeaders(token),
       body: formData,
     });
 

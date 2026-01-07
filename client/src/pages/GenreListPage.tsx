@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Spinner from "../components/Spinner";
+import { useAuth } from "../auth/AuthContext";
+import { authHeaders } from "../auth/authHeaders";
 
 interface Genre {
   id: number;
@@ -11,6 +13,7 @@ function GenreListPage() {
   const [genres, setGenres] = useState<Genre[]>([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const { token } = useAuth();
 
   const fetchGenres = async () => {
     setLoading(true);
@@ -31,7 +34,10 @@ function GenreListPage() {
 
     setLoading(true);
     try {
-      await fetch(`http://localhost:8080/api/genres/${id}`, { method: "DELETE" });
+      await fetch(`http://localhost:8080/api/genres/${id}`, {
+        method: "DELETE",
+        headers: authHeaders(token),
+      });
       await fetchGenres();
     } catch (err) {
       console.error("Failed to delete genre", err);

@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../auth/AuthContext";
+import { authHeaders } from "../auth/authHeaders";
 
 interface Genre {
   id: number;
@@ -14,6 +16,7 @@ function AnimeCreatePage() {
   const [selectedGenres, setSelectedGenres] = useState<number[]>([]);
 
   const navigate = useNavigate();
+  const { token } = useAuth();
 
   useEffect(() => {
     fetch("http://localhost:8080/api/genres")
@@ -27,7 +30,7 @@ function AnimeCreatePage() {
     try {
       await fetch("http://localhost:8080/api/animes", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: authHeaders(token, { "Content-Type": "application/json" }),
         body: JSON.stringify({
           titleJapanese,
           titleEnglish,

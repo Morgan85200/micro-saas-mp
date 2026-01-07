@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../auth/AuthContext";
+import { authHeaders } from "../auth/authHeaders";
 
 interface Anime {
   id: number;
@@ -22,6 +24,7 @@ function QuizCreatePage() {
   const [hints, setHints] = useState<HintForm[]>([]);
   const [animes, setAnimes] = useState<Anime[]>([]);
   const navigate = useNavigate();
+  const { token } = useAuth();
 
   useEffect(() => {
     fetch("http://localhost:8080/api/animes?limit=500")
@@ -55,7 +58,8 @@ function QuizCreatePage() {
   
     await fetch("http://localhost:8080/api/quizzes", {
       method: "POST",
-      body: formData, // 🚨 NO headers
+      headers: authHeaders(token),
+      body: formData,
     });
   
     navigate("/quizzes");

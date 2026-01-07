@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Spinner from "../components/Spinner";
+import { useAuth } from "../auth/AuthContext";
+import { authHeaders } from "../auth/authHeaders";
 
 interface Genre {
   id: number;
@@ -22,6 +24,7 @@ function AnimeListPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [jumpPage, setJumpPage] = useState(1); // For the jump input
   const itemsPerPage = 20;
+  const { token } = useAuth();
 
   const navigate = useNavigate();
 
@@ -49,7 +52,10 @@ function AnimeListPage() {
 
     setLoading(true);
     try {
-      await fetch(`http://localhost:8080/api/animes/${id}`, { method: "DELETE" });
+      await fetch(`http://localhost:8080/api/animes/${id}`, {
+        method: "DELETE",
+        headers: authHeaders(token),
+      });
       fetchAnimes(currentPage);
     } catch (err) {
       console.error("Failed to delete anime", err);
