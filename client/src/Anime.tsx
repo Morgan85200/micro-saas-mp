@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { apiUrl } from "./config/api";
 
 interface Genre {
   id: number;
@@ -25,20 +26,20 @@ export default function Anime() {
   });
 
   const fetchAnimes = async () => {
-    const res = await fetch("http://localhost:8080/api/animes");
+    const res = await fetch(apiUrl("/api/animes"));
     const data = await res.json();
     setAnimes(data);
   };
 
   const fetchGenres = async () => {
-    const res = await fetch("http://localhost:8080/api/genres");
+    const res = await fetch(apiUrl("/api/genres"));
     const data = await res.json();
     setGenres(data);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await fetch("http://localhost:8080/api/animes", {
+    await fetch(apiUrl("/api/animes"), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(form),
@@ -48,7 +49,7 @@ export default function Anime() {
   };
 
   const deleteAnime = async (id: number) => {
-    await fetch(`http://localhost:8080/api/animes/${id}`, { method: "DELETE" });
+    await fetch(apiUrl(`/api/animes/${id}`), { method: "DELETE" });
     fetchAnimes();
   };
 
@@ -117,7 +118,7 @@ export default function Anime() {
             <p>
               Genres:{" "}
               {a.genres && a.genres.length > 0
-                ? a.genres.map((g: any) => g.name).join(", ")
+                ? a.genres.map((g: Genre) => g.name).join(", ")
                 : "—"}
             </p>
             <button

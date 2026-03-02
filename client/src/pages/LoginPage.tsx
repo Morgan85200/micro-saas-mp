@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "../auth/AuthContext";
+import { useAuth } from "../auth/useAuth";
 
 export default function LoginPage() {
   const { login } = useAuth();
@@ -23,10 +23,10 @@ export default function LoginPage() {
 
   return (
     <div className="page-container auth-page">
-      <h2>Login</h2>
+      <h2>Connexion</h2>
       <form className="auth-form" onSubmit={handleSubmit}>
         <label>
-          Email
+          E-mail
           <input
             type="email"
             value={email}
@@ -35,7 +35,7 @@ export default function LoginPage() {
           />
         </label>
         <label>
-          Password
+          Mot de passe
           <input
             type="password"
             value={password}
@@ -44,13 +44,14 @@ export default function LoginPage() {
           />
         </label>
         {error && <p className="form-error">{error}</p>}
-        <button type="submit">Login</button>
+        <button type="submit">Connexion</button>
       </form>
       <Link to="/">
         <button type="button" className="ghost-button">
-          Back to Homepage
+          Retour à l'accueil
         </button>
       </Link>
     </div>
   );
 }
+

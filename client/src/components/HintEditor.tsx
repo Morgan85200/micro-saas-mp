@@ -22,7 +22,7 @@ interface Hint {
       ]);
     };
   
-    const updateHint = (index: number, field: keyof Hint, value: any) => {
+    const updateHint = <K extends keyof Hint>(index: number, field: K, value: Hint[K]) => {
       const updated = [...hints];
       updated[index] = { ...updated[index], [field]: value };
       setHints(updated);

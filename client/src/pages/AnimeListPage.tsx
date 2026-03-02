@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Spinner from "../components/Spinner";
-import { useAuth } from "../auth/AuthContext";
+import { useAuth } from "../auth/useAuth";
 import { authHeaders } from "../auth/authHeaders";
+import { apiUrl } from "../config/api";
 
 interface Genre {
   id: number;
@@ -32,7 +33,7 @@ function AnimeListPage() {
     setLoading(true);
     try {
       const res = await fetch(
-        `http://localhost:8080/api/animes?page=${page}&limit=${itemsPerPage}`
+        apiUrl(`/api/animes?page=${page}&limit=${itemsPerPage}`)
       );
       const json = await res.json();
       setAnimes(json.animes);
@@ -52,7 +53,7 @@ function AnimeListPage() {
 
     setLoading(true);
     try {
-      await fetch(`http://localhost:8080/api/animes/${id}`, {
+      await fetch(apiUrl(`/api/animes/${id}`), {
         method: "DELETE",
         headers: authHeaders(token),
       });
@@ -78,27 +79,27 @@ function AnimeListPage() {
 
   return (
     <div className="page-container">
-      <h2>Anime List</h2>
+      <h2>Liste des anime</h2>
       <Link to="/anime/create">
-        <button>Create Anime</button>
+        <button>Ajouter un anime</button>
       </Link>
 
       <ul>
         {animes.map((a) => (
           <li key={a.id} className="anime-item">
-            <p><strong>Original Title:</strong> {a.titleJapanese}</p>
-            <p><strong>English Title:</strong> {a.titleEnglish || "—"}</p>
+            <p><strong>Titre original:</strong> {a.titleJapanese}</p>
+            <p><strong>Titre anglais:</strong> {a.titleEnglish || "—"}</p>
             <p>
               <strong>Genres:</strong>{" "}
               {a.genres && a.genres.length > 0
                 ? a.genres.map((g) => g.name).join(", ")
                 : "—"}
             </p>
-            <p><strong>Premiered:</strong> {a.releaseDate}</p>
+            <p><strong>A débuté le:</strong> {a.releaseDate}</p>
             <div className="anime-buttons">
-              <button onClick={() => deleteAnime(a.id, a.titleJapanese)}>Delete</button>
+              <button onClick={() => deleteAnime(a.id, a.titleJapanese)}>Supprimer</button>
               <Link to={`/anime/edit/${a.id}`}>
-                <button>Edit</button>
+                <button>Modifier</button>
               </Link>
             </div>
           </li>
@@ -111,7 +112,7 @@ function AnimeListPage() {
           disabled={currentPage === 1}
           onClick={() => setCurrentPage(currentPage - 1)}
         >
-          Previous
+          Précédent
         </button>
 
         <span style={{ margin: "0 10px" }}>
@@ -122,14 +123,14 @@ function AnimeListPage() {
           disabled={currentPage === totalPages || totalPages === 0}
           onClick={() => setCurrentPage(currentPage + 1)}
         >
-          Next
+          Suivant
         </button>
       </div>
 
       {/* Jump to page */}
       <div style={{ marginTop: "10px" }}>
         <label>
-          Jump to page:{" "}
+          Sauter à la page:{" "}
           <input
             type="number"
             min={1}
@@ -145,10 +146,11 @@ function AnimeListPage() {
       </div>
 
       <button style={{ marginTop: "20px" }} onClick={() => navigate("/")}>
-        Return to Home
+        Retour à l'accueil
       </button>
     </div>
   );
 }
 
 export default AnimeListPage;
+

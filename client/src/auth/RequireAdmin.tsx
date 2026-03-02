@@ -1,8 +1,9 @@
+import type { ReactElement } from "react";
 import { Navigate } from "react-router-dom";
-import { useAuth } from "./AuthContext";
+import { useAuth } from "./useAuth";
 import Spinner from "../components/Spinner";
 
-export default function RequireAdmin({ children }: { children: JSX.Element }) {
+export default function RequireAdmin({ children }: { children: ReactElement }) {
   const { user, loading } = useAuth();
 
   if (loading) return <Spinner />;

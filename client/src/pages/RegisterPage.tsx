@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "../auth/AuthContext";
+import { useAuth } from "../auth/useAuth";
 
 export default function RegisterPage() {
   const { register } = useAuth();
@@ -28,7 +28,7 @@ export default function RegisterPage() {
       <h2>Create account</h2>
       <form className="auth-form" onSubmit={handleSubmit}>
         <label>
-          Username
+          Identifiant
           <input
             type="text"
             value={username}
@@ -37,7 +37,7 @@ export default function RegisterPage() {
           />
         </label>
         <label>
-          Email
+          E-mail
           <input
             type="email"
             value={email}
@@ -46,7 +46,7 @@ export default function RegisterPage() {
           />
         </label>
         <label>
-          Password
+          Mot de passe
           <input
             type="password"
             value={password}
@@ -55,13 +55,14 @@ export default function RegisterPage() {
           />
         </label>
         {error && <p className="form-error">{error}</p>}
-        <button type="submit">Register</button>
+        <button type="submit">S'enregistrer</button>
       </form>
       <Link to="/">
         <button type="button" className="ghost-button">
-          Back to Homepage
+          Retour à l'accueil
         </button>
       </Link>
     </div>
   );
 }
+

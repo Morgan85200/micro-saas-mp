@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Spinner from "../components/Spinner";
-import { useAuth } from "../auth/AuthContext";
+import { useAuth } from "../auth/useAuth";
 import { authHeaders } from "../auth/authHeaders";
+import { apiUrl } from "../config/api";
 
 interface Genre {
   id: number;
@@ -18,7 +19,7 @@ function GenreListPage() {
   const fetchGenres = async () => {
     setLoading(true);
     try {
-      const res = await fetch("http://localhost:8080/api/genres");
+      const res = await fetch(apiUrl("/api/genres"));
       const data = await res.json();
       setGenres(data);
     } catch (err) {
@@ -34,7 +35,7 @@ function GenreListPage() {
 
     setLoading(true);
     try {
-      await fetch(`http://localhost:8080/api/genres/${id}`, {
+      await fetch(apiUrl(`/api/genres/${id}`), {
         method: "DELETE",
         headers: authHeaders(token),
       });
@@ -54,27 +55,28 @@ function GenreListPage() {
 
   return (
     <div className="page-container">
-      <h2>Genre List</h2>
+      <h2>Liste des genres</h2>
       <Link to="/genres/create">
-        <button>Create Genre</button>
+        <button>Ajouter un genre</button>
       </Link>
       <ul>
         {genres.map((g) => (
           <li key={g.id} className="genre-item">
             <p><strong>ID:</strong> {g.id}</p>
-            <p><strong>Name:</strong> {g.name}</p>
+            <p><strong>Nom:</strong> {g.name}</p>
             <div className="anime-buttons">
-              <button onClick={() => deleteGenre(g.id, g.name)}>Delete</button>
+              <button onClick={() => deleteGenre(g.id, g.name)}>Supprimer</button>
               <Link to={`/genres/edit/${g.id}`}>
-                <button>Edit</button>
+                <button>Modifier</button>
               </Link>
             </div>
           </li>
         ))}
       </ul>
-      <button onClick={() => navigate("/")}>Return to Home</button>
+      <button onClick={() => navigate("/")}>Retour à l'accueil</button>
     </div>
   );
 }
 
 export default GenreListPage;
+

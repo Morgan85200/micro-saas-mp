@@ -15,11 +15,11 @@ import QuizEditPage from "./pages/QuizEditPage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import ProfilePage from "./pages/ProfilePage";
-import { AuthProvider, useAuth } from "./auth/AuthContext";
+import { AuthProvider } from "./auth/AuthContext";
+import { useAuth } from "./auth/useAuth";
 import RequireAdmin from "./auth/RequireAdmin";
 import RequireAuth from "./auth/RequireAuth";
-
-const API_BASE = "http://localhost:8080";
+import { API_BASE } from "./config/api";
 
 function AppHeader() {
   const { user, logout } = useAuth();
@@ -35,9 +35,11 @@ function AppHeader() {
   return (
     <header className="app-header">
       <div className="header-left">
-        <h1>Site Morgan Front-End</h1>
+        <h1>
+          <img src="/images/Logo.png" alt="Animangadle" className="brand-logo" />
+        </h1>
         <nav>
-          <Link to="/">Home</Link>
+          <Link to="/">Accueil</Link>
           {isAdmin && <Link to="/anime">Anime</Link>}
           {isAdmin && <Link to="/genres">Genres</Link>}
           {isAdmin && <Link to="/quizzes">Liste des quizz</Link>}
@@ -55,7 +57,7 @@ function AppHeader() {
               <span>{user.username}</span>
             </Link>
             <button onClick={logout} className="ghost-button">
-              Log out
+              Se déconnecter
             </button>
           </>
         ) : null}

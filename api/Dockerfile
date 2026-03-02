@@ -11,6 +11,9 @@ WORKDIR /app
 COPY --from=build /app ./
 RUN apt-get update && apt-get install -y \
     libzip-dev libsodium-dev unzip git mariadb-client \
-    && docker-php-ext-install pdo_mysql zip sodium
+    && docker-php-ext-install pdo_mysql zip sodium \
+    && mkdir -p /app/var /app/public/uploads/hints /app/public/uploads/avatar \
+    && chown -R www-data:www-data /app
+USER www-data
 EXPOSE 8080
 CMD ["php", "-S", "0.0.0.0:8080", "-t", "public"]

@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import Spinner from "../components/Spinner";
-import { useAuth } from "../auth/AuthContext";
+import { useAuth } from "../auth/useAuth";
 import { authHeaders } from "../auth/authHeaders";
+import { apiUrl } from "../config/api";
 
 interface Quiz {
   id: number;
@@ -26,7 +27,7 @@ function QuizListPage() {
     setLoading(true);
     try {
       const res = await fetch(
-        `http://localhost:8080/api/quizzes?page=${page}&limit=10`
+        apiUrl(`/api/quizzes?page=${page}&limit=10`)
       );
       const json = await res.json();
       setQuizzes(json.quizzes);
@@ -41,7 +42,7 @@ function QuizListPage() {
   const deleteQuiz = async (id: number) => {
     if (!window.confirm("Delete this quiz and all its hints?")) return;
 
-    await fetch(`http://localhost:8080/api/quizzes/${id}`, {
+    await fetch(apiUrl(`/api/quizzes/${id}`), {
       method: "DELETE",
       headers: authHeaders(token),
     });
@@ -56,10 +57,10 @@ function QuizListPage() {
 
   return (
     <div className="page-container">
-      <h2>Quiz Admin</h2>
+      <h2>Liste des quizz</h2>
 
       <Link to="/quizzes/create">
-        <button>Create Quiz</button>
+        <button>Créer un quizz</button>
       </Link>
 
       <ul>
@@ -68,13 +69,13 @@ function QuizListPage() {
             <p><strong>Date:</strong> {q.quizDate}</p>
             <p><strong>Type:</strong> {q.quizType}</p>
             <p><strong>Anime:</strong> {q.anime.titleJapanese}</p>
-            <p><strong>Hints:</strong> {q.hintCount}</p>
+            <p><strong>Indices:</strong> {q.hintCount}</p>
 
             <div className="anime-buttons">
               <Link to={`/quizzes/edit/${q.id}`}>
-                <button>Edit</button>
+                <button>Modifier</button>
               </Link>
-              <button onClick={() => deleteQuiz(q.id)}>Delete</button>
+              <button onClick={() => deleteQuiz(q.id)}>Supprimer</button>
             </div>
           </li>
         ))}
@@ -85,7 +86,7 @@ function QuizListPage() {
             disabled={page === 1}
             onClick={() => setPage(page - 1)}
         >
-          Previous
+          Précédent
         </button>
 
         <span style={{ margin: "0 10px" }}>
@@ -96,7 +97,7 @@ function QuizListPage() {
           disabled={page === totalPages}
           onClick={() => setPage(page + 1)}
         >
-          Next
+          Suivant
         </button>
       </div>
     </div>
@@ -104,3 +105,4 @@ function QuizListPage() {
 }
 
 export default QuizListPage;
+

@@ -378,3 +378,12 @@ Closes #[numéro]
 ---
 
 *Ce guide évolue avec votre expérience. N'hésitez pas à l'adapter selon vos besoins et apprentissages !*
+## Securite
+
+Le projet applique une base de securite sur plusieurs niveaux :
+
+- Variables d'environnement : les secrets ne sont pas stockes dans `.env` versionne, mais dans `api/.env.local` (ignore par Git).
+- API headers : les reponses `/api/*` ajoutent des headers de securite (`X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, `Permissions-Policy`, `Content-Security-Policy`).
+- CORS : configure via `api/config/packages/nelmio_cors.yaml`.
+- Docker non-root : les conteneurs API et client sont executes avec un utilisateur non root.
+- CI audits : la pipeline execute `composer audit` et `npm audit` en plus des lints/builds.

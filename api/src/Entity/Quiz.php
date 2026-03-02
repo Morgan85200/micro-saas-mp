@@ -37,6 +37,9 @@ class Quiz
     #[ORM\Column(length: 50)]
     private ?string $quizType = null;
 
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $quizImage = null;
+
     #[ORM\Table(
         uniqueConstraints: [
             new ORM\UniqueConstraint(columns: ['quiz_date', 'quiz_type'])
@@ -115,6 +118,18 @@ class Quiz
     public function setQuizType(string $quizType): static
     {
         $this->quizType = $quizType;
+
+        return $this;
+    }
+
+    public function getQuizImage(): ?string
+    {
+        return $this->quizImage;
+    }
+
+    public function setQuizImage(?string $quizImage): static
+    {
+        $this->quizImage = $quizImage;
 
         return $this;
     }

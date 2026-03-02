@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { apiUrl } from "./config/api";
 
 interface Genre {
   id?: number;
@@ -10,7 +11,7 @@ export default function Genre() {
   const [name, setName] = useState("");
 
   const fetchGenres = async () => {
-    const res = await fetch("http://localhost:8080/api/genres");
+    const res = await fetch(apiUrl("/api/genres"));
     const data = await res.json();
     setGenres(data);
   };
@@ -18,7 +19,7 @@ export default function Genre() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) return;
-    await fetch("http://localhost:8080/api/genres", {
+    await fetch(apiUrl("/api/genres"), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name }),
@@ -28,7 +29,7 @@ export default function Genre() {
   };
 
   const deleteGenre = async (id: number) => {
-    await fetch(`http://localhost:8080/api/genres/${id}`, { method: "DELETE" });
+    await fetch(apiUrl(`/api/genres/${id}`), { method: "DELETE" });
     fetchGenres();
   };
 

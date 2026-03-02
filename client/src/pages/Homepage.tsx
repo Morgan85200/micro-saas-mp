@@ -1,8 +1,9 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import Spinner from "../components/Spinner";
 import "./Homepage.css";
-import { useAuth } from "../auth/AuthContext";
+import { useAuth } from "../auth/useAuth";
+import { API_BASE, apiUrl } from "../config/api";
 
 type QuizType = "anime" | "manga";
 
@@ -18,6 +19,7 @@ type Quiz = {
   id: number;
   quizDate: string;
   quizType: QuizType;
+  quizImage?: string | null;
   anime: {
     id: number;
     titleJapanese: string;
@@ -31,10 +33,20 @@ type AnimeOption = {
   titleEnglish?: string | null;
 };
 
-const API_BASE = "http://localhost:8080";
 const ANIME_PAGE_SIZE = 200;
 
 const normalizeGuess = (value: string) => value.trim().toLowerCase();
+const formatQuizDate = (date: string) => {
+  const [year, month, day] = date.split("-");
+  if (!year || !month || !day) return date;
+  return `${day}/${month}/${year}`;
+};
+
+const base64UrlDecode = (value: string) => {
+  const normalized = value.replace(/-/g, "+").replace(/_/g, "/");
+  const padded = normalized.padEnd(normalized.length + ((4 - (normalized.length % 4)) % 4), "=");
+  return atob(padded);
+};
 
 type CompletionRecord = {
   status: "won" | "lost";
@@ -55,24 +67,42 @@ export default function Homepage() {
   const [animes, setAnimes] = useState<AnimeOption[]>([]);
   const [loadingQuiz, setLoadingQuiz] = useState(false);
   const [loadingAnimes, setLoadingAnimes] = useState(true);
-  const [status, setStatus] = useState<"idle" | "ready" | "won" | "lost" | "error" | "completed">("idle");
-  const [error, setError] = useState<string | null>(null);
+  const [status, setStatus] = useState<"idle" | "ready" | "won" | "lost" | "completed">("idle");
   const [feedback, setFeedback] = useState<string | null>(null);
   const [attemptPosted, setAttemptPosted] = useState(false);
   const [completedAttempt, setCompletedAttempt] = useState<CompletionRecord | null>(null);
+  const [copyMessage, setCopyMessage] = useState<string | null>(null);
 
-  const progressKey = (quizId: number) =>
-    `quiz-progress-${quizId}-${user?.id ?? "guest"}`;
-
-  const completionKey = (quizId: number) =>
-    `quiz-completed-${quizId}-${user?.id ?? "guest"}`;
+  const userScope = useMemo(() => {
+    if (!token) return "guest";
+    try {
+      const payloadPart = token.split(".")[1];
+      if (!payloadPart) return "auth";
+      const payload = JSON.parse(base64UrlDecode(payloadPart)) as {
+        username?: string;
+        sub?: string;
+      };
+      const identity = payload.username || payload.sub;
+      return identity ? `auth-${identity}` : "auth";
+    } catch {
+      return "auth";
+    }
+  }, [token]);
+  const progressKey = useCallback(
+    (quizId: number) => `quiz-progress-${quizId}-${userScope}`,
+    [userScope]
+  );
+  const completionKey = useCallback(
+    (quizId: number) => `quiz-completed-${quizId}-${userScope}`,
+    [userScope]
+  );
 
   useEffect(() => {
     const fetchAllAnimes = async () => {
       setLoadingAnimes(true);
       try {
         const firstRes = await fetch(
-          `${API_BASE}/api/animes?page=1&limit=${ANIME_PAGE_SIZE}`
+          apiUrl(`/api/animes?page=1&limit=${ANIME_PAGE_SIZE}`)
         );
         const firstJson = await firstRes.json();
         let allAnimes: AnimeOption[] = firstJson.animes ?? [];
@@ -82,7 +112,7 @@ export default function Homepage() {
           const pageRequests = Array.from({ length: totalPages - 1 }, (_, idx) => {
             const page = idx + 2;
             return fetch(
-              `${API_BASE}/api/animes?page=${page}&limit=${ANIME_PAGE_SIZE}`
+              apiUrl(`/api/animes?page=${page}&limit=${ANIME_PAGE_SIZE}`)
             ).then((res) => res.json());
           });
 
@@ -112,13 +142,13 @@ export default function Homepage() {
     setCurrentHintIndex(0);
     setGuess("");
     setFeedback(null);
-    setError(null);
     setStatus("idle");
     setAttemptPosted(false);
     setCompletedAttempt(null);
+    setCopyMessage(null);
 
     try {
-      const res = await fetch(`${API_BASE}/api/quizzes/today?type=${type}`);
+      const res = await fetch(apiUrl(`/api/quizzes/today?type=${type}`));
       const data = await res.json();
       if (!res.ok) {
         throw new Error(data?.error || "No quiz available right now.");
@@ -157,7 +187,7 @@ export default function Homepage() {
           };
           if (parsed.quizDate === data.quizDate && parsed.hintIndex < data.hints.length) {
             setCurrentHintIndex(parsed.hintIndex);
-            setFeedback("Welcome back! Pick up where you left off.");
+            setFeedback("Votre progression a été sauvegardée");
           }
         } catch {
           localStorage.removeItem(progressKey(data.id));
@@ -168,26 +198,23 @@ export default function Homepage() {
     } catch (err) {
       const message =
         err instanceof Error ? err.message : "Something went wrong loading the quiz.";
-      setError(message);
-      setStatus("error");
+      setFeedback(message);
+      setStatus("idle");
     } finally {
       setLoadingQuiz(false);
     }
   };
 
   const resetQuiz = () => {
-    if (quiz?.id) {
-      localStorage.removeItem(progressKey(quiz.id));
-    }
     setQuizType(null);
     setQuiz(null);
     setCurrentHintIndex(0);
     setGuess("");
     setFeedback(null);
-    setError(null);
     setStatus("idle");
     setAttemptPosted(false);
     setCompletedAttempt(null);
+    setCopyMessage(null);
   };
 
   const currentHint = quiz?.hints?.[currentHintIndex] ?? null;
@@ -234,7 +261,7 @@ export default function Homepage() {
     if (nextIndex < quiz.hints.length) {
       setCurrentHintIndex(nextIndex);
       setGuess("");
-      setFeedback("Not quite. Here is the next hint!");
+      setFeedback("Faux, voici l'indice suivant");
     } else {
       setStatus("lost");
       setFeedback(null);
@@ -248,8 +275,55 @@ export default function Homepage() {
 
   const hintImageUrl =
     currentHint?.hintImage ? `${API_BASE}/uploads/hints/${currentHint.hintImage}` : null;
+  const quizImageUrl =
+    quiz?.quizImage ? `${API_BASE}/uploads/quizzes/${quiz.quizImage}` : null;
 
   const showModal = status === "won" || status === "lost";
+  const shareStatus =
+    status === "completed"
+      ? completedAttempt?.status
+      : status === "won" || status === "lost"
+        ? status
+        : null;
+  const shareTries =
+    status === "completed"
+      ? completedAttempt?.hintsUsed ?? null
+      : status === "won"
+        ? currentHintIndex + 1
+        : status === "lost" && quiz
+          ? quiz.hints.length
+          : null;
+  const shareText =
+    quiz && shareStatus
+      ? shareStatus === "won"
+        ? `J'ai trouvé l'Animangadle du jour (${formatQuizDate(
+            quiz.quizDate
+          )}) en ${shareTries ?? "?"} essais ✅`
+        : `Je n'ai pas réussi à trouver l'Animangadle du jour (${formatQuizDate(
+            quiz.quizDate
+          )}) ❌`
+      : null;
+
+  const copyShareText = async () => {
+    if (!shareText) return;
+
+    try {
+      await navigator.clipboard.writeText(shareText);
+      setCopyMessage("Résultat enregistré dans le presse-papier ");
+      return;
+    } catch {
+      const textarea = document.createElement("textarea");
+      textarea.value = shareText;
+      textarea.setAttribute("readonly", "");
+      textarea.style.position = "absolute";
+      textarea.style.left = "-9999px";
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand("copy");
+      document.body.removeChild(textarea);
+      setCopyMessage("Résultat enregistré dans le presse-papier");
+    }
+  };
 
   useEffect(() => {
     const postAttempt = async () => {
@@ -259,7 +333,7 @@ export default function Homepage() {
       const hintsUsed = status === "lost" ? quiz.hints.length : currentHintIndex + 1;
 
       try {
-        await fetch(`${API_BASE}/api/quizzes/${quiz.id}/attempt`, {
+        await fetch(apiUrl(`/api/quizzes/${quiz.id}/attempt`), {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -288,13 +362,13 @@ export default function Homepage() {
       hintIndex: currentHintIndex,
     };
     localStorage.setItem(progressKey(quiz.id), JSON.stringify(payload));
-  }, [quiz, currentHintIndex, status]);
+  }, [quiz, currentHintIndex, status, progressKey]);
 
   useEffect(() => {
     if (!quiz || !completedAttempt) return;
     localStorage.setItem(completionKey(quiz.id), JSON.stringify(completedAttempt));
     localStorage.removeItem(progressKey(quiz.id));
-  }, [quiz, completedAttempt]);
+  }, [quiz, completedAttempt, completionKey, progressKey]);
 
   if (quizType === null) {
     return (
@@ -312,33 +386,33 @@ export default function Homepage() {
                   <span>{user.username}</span>
                 </Link>
                 <button onClick={logout} className="ghost-button">
-                  Log out
+                  Se déconnecter
                 </button>
               </>
             ) : (
               <>
-                <Link to="/login">Login</Link>
-                <Link to="/register">Register</Link>
+                <Link to="/login">Connexion</Link>
+                <Link to="/register">Créer un compte</Link>
               </>
             )}
           </div>
         )}
         <div className="home-hero">
-          <p className="home-tag">Daily Guess Challenge</p>
-          <h2>Pick your quiz mode for today</h2>
+          <img src="/images/Logo.png" alt="Animangadle" className="home-logo" />
+          <h2>Choisissez votre type de quizz souhaité</h2>
           <p className="home-subtitle">
-            One quiz a day. Follow the hints, trust your instincts, and win the streak.
+            Un quizz anime et manga chaque jour !
           </p>
         </div>
 
         <div className="type-grid">
           <button className="type-card" onClick={() => startQuiz("anime")}>
-            <span className="type-title">Anime Quiz</span>
-            <span className="type-copy">Classic series, iconic characters, deep cuts.</span>
+            <span className="type-title">Anime Quizz</span>
+            <span className="type-copy">Devinez à partir d'une affiche, d'une planche ou d'une séquence entière !</span>
           </button>
           <button className="type-card" onClick={() => startQuiz("manga")}>
-            <span className="type-title">Manga Quiz</span>
-            <span className="type-copy">Panels, volumes, and legendary arcs await.</span>
+            <span className="type-title">Manga Quizz</span>
+            <span className="type-copy">Devinez à partir d'une couverture de volume, chapitre ou encore d'un panel !</span>
           </button>
         </div>
       </div>
@@ -350,20 +424,49 @@ export default function Homepage() {
       <div className="homepage">
         <div className="quiz-shell">
           <Spinner />
-          <p className="home-subtitle">Loading today&apos;s quiz...</p>
+          <p className="home-subtitle">Chargement du quizz de la journée...</p>
         </div>
       </div>
     );
   }
 
-  if (status === "error") {
+  if (!quiz) {
     return (
       <div className="homepage">
+        {!isAdmin && (
+          <div className="homepage-auth">
+            {user ? (
+              <>
+                <Link to="/profile" className="profile-link">
+                  {avatarUrl ? (
+                    <img src={avatarUrl} alt="Profile" className="avatar" />
+                  ) : (
+                    <span className="avatar-placeholder">{user.username[0]}</span>
+                  )}
+                  <span>{user.username}</span>
+                </Link>
+                <button onClick={logout} className="ghost-button">
+                  Se déconnecter
+                </button>
+              </>
+            ) : (
+              <>
+                <Link to="/login">Connexion</Link>
+                <Link to="/register">Créer un compte</Link>
+              </>
+            )}
+          </div>
+        )}
         <div className="quiz-shell">
-          <h2>Today&apos;s quiz is missing</h2>
-          <p className="home-subtitle">{error}</p>
+          <div className="quiz-header">
+            <div>
+              <p className="home-tag">Quizz du jour</p>
+              <h2>{quizType === "anime" ? "Anime Quiz" : "Manga Quiz"}</h2>
+            </div>
+          </div>
+          {feedback && <p className="home-subtitle">{feedback}</p>}
           <button className="ghost-button" onClick={resetQuiz}>
-            Back to quiz types
+            Retour à la sélection des types
           </button>
         </div>
       </div>
@@ -386,13 +489,13 @@ export default function Homepage() {
                   <span>{user.username}</span>
                 </Link>
                 <button onClick={logout} className="ghost-button">
-                  Log out
+                Se déconnecter
                 </button>
               </>
             ) : (
               <>
-                <Link to="/login">Login</Link>
-                <Link to="/register">Register</Link>
+                <Link to="/login">Connexion</Link>
+                <Link to="/register">Créer un compte</Link>
               </>
             )}
           </div>
@@ -400,22 +503,33 @@ export default function Homepage() {
         <div className="quiz-shell">
           <div className="quiz-header">
             <div>
-              <p className="home-tag">Quiz of the day</p>
-              <h2>{quiz.quizType === "anime" ? "Anime Quiz" : "Manga Quiz"}</h2>
+              <p className="home-tag">Quizz du jour</p>
+              <h2>{quiz.quizType === "anime" ? "Anime Quizz" : "Manga Quizz"}</h2>
             </div>
-            <div className="hint-counter">Completed</div>
+            <div className="hint-counter">Terminé</div>
           </div>
           <p className="home-subtitle">
-            You already finished today&apos;s quiz.
+            Tu as déjà terminé le quizz d'aujourd'hui
           </p>
+          {quizImageUrl && (
+            <div className="quiz-cover-image">
+              <img src={quizImageUrl} alt="Couverture de la réponse" />
+            </div>
+          )}
           {completedAttempt && (
             <p className="hint-feedback">
-              Result: {completedAttempt.status === "won" ? "Won" : "Lost"} · Hints used:{" "}
+              Resultat: {completedAttempt.status === "won" ? "Victoire" : "Perdu"} · Indices utilisés:{" "}
               {completedAttempt.hintsUsed}
             </p>
           )}
+          {shareText && (
+            <button className="ghost-button" onClick={copyShareText}>
+              Partager mon résultat
+            </button>
+          )}
+          {copyMessage && <p className="hint-feedback">{copyMessage}</p>}
           <button className="ghost-button" onClick={resetQuiz}>
-            Back to quiz types
+            Retour à l'accueil
           </button>
         </div>
       </div>
@@ -437,13 +551,13 @@ export default function Homepage() {
                 <span>{user.username}</span>
               </Link>
               <button onClick={logout} className="ghost-button">
-                Log out
+              Se déconnecter
               </button>
             </>
           ) : (
             <>
-              <Link to="/login">Login</Link>
-              <Link to="/register">Register</Link>
+              <Link to="/login">Connexion</Link>
+              <Link to="/register">Créer un compte</Link>
             </>
           )}
         </div>
@@ -451,11 +565,11 @@ export default function Homepage() {
       <div className="quiz-shell">
         <div className="quiz-header">
           <div>
-            <p className="home-tag">Quiz of the day</p>
-            <h2>{quizType === "anime" ? "Anime Quiz" : "Manga Quiz"}</h2>
+            <p className="home-tag">Quizz du jour</p>
+            <h2>{quizType === "anime" ? "Anime Quizz" : "Manga Quizz"}</h2>
           </div>
           <div className="hint-counter">
-            Hint {Math.min(currentHintIndex + 1, quiz?.hints.length || 0)} /{" "}
+            Indice {Math.min(currentHintIndex + 1, quiz?.hints.length || 0)} /{" "}
             {quiz?.hints.length || 0}
           </div>
         </div>
@@ -475,20 +589,20 @@ export default function Homepage() {
 
         <form className="guess-form" onSubmit={handleGuessSubmit}>
           <label htmlFor="guess" className="guess-label">
-            Your guess
+            Ecrivez votre réponse ici
           </label>
           <div className="guess-row">
             <input
               id="guess"
               list="anime-list"
               type="text"
-              placeholder={loadingAnimes ? "Loading titles..." : "Start typing a title"}
+              placeholder={loadingAnimes ? "Chargement des animes..." : "Commencez à écrire un titre"}
               value={guess}
               onChange={(e) => setGuess(e.target.value)}
               autoComplete="off"
             />
             <button type="submit" className="primary-button" disabled={!guess.trim()}>
-              Submit guess
+              Valider votre réponse
             </button>
           </div>
           <datalist id="anime-list">
@@ -505,21 +619,32 @@ export default function Homepage() {
         </form>
 
         <button className="ghost-button" onClick={resetQuiz}>
-          Choose another quiz type
+          Choisissez un autre type de quizz
         </button>
       </div>
 
       {showModal && (
         <div className="quiz-modal">
           <div className="quiz-modal-card">
-            <h3>{status === "won" ? "You got it!" : "No more hints today"}</h3>
+            <h3>{status === "won" ? "Bien joué !" : "Plus aucun indice disponible..."}</h3>
             <p className="modal-text">
               {status === "won"
-                ? `The answer is ${displayAnswer}.`
-                : `The correct answer was ${displayAnswer}.`}
+                ? `La réponse était bien ${displayAnswer}.`
+                : `La réponse correcte était ${displayAnswer}.`}
             </p>
+            {quizImageUrl && (
+              <div className="quiz-cover-image">
+                <img src={quizImageUrl} alt="Couverture de la réponse" />
+              </div>
+            )}
+            {shareText && (
+              <button className="ghost-button" onClick={copyShareText}>
+                Partager mon résultat
+              </button>
+            )}
+            {copyMessage && <p className="hint-feedback">{copyMessage}</p>}
             <button className="primary-button" onClick={resetQuiz}>
-              Back to quiz types
+              Retour à l'accueil
             </button>
           </div>
         </div>

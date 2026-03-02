@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { useAuth } from "../auth/AuthContext";
+import { useAuth } from "../auth/useAuth";
 import { authHeaders } from "../auth/authHeaders";
+import { API_BASE, apiUrl } from "../config/api";
 
 type HintForm = {
   id?: number;
@@ -13,6 +14,22 @@ type HintForm = {
   hintImagePreview?: string;
 };
 
+type QuizHintResponse = {
+  id: number;
+  orderNumber: number;
+  hintText: string;
+  hintType: "text" | "image";
+  hintImage?: string | null;
+};
+
+type QuizResponse = {
+  anime: { id: number };
+  quizDate: string;
+  quizType: string;
+  quizImage?: string | null;
+  hints: QuizHintResponse[];
+};
+
 function QuizEditPage() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -20,26 +37,33 @@ function QuizEditPage() {
   const [animeId, setAnimeId] = useState<number | null>(null);
   const [quizDate, setQuizDate] = useState("");
   const [quizType, setQuizType] = useState("anime");
+  const [quizImage, setQuizImage] = useState<string | null>(null);
+  const [quizImageFile, setQuizImageFile] = useState<File | null>(null);
+  const [quizImagePreview, setQuizImagePreview] = useState<string | null>(null);
   const [hints, setHints] = useState<HintForm[]>([]);
   const { token } = useAuth();
 
   useEffect(() => {
-    fetch(`http://localhost:8080/api/quizzes/${id}`)
+    fetch(apiUrl(`/api/quizzes/${id}`))
       .then((res) => res.json())
-      .then((quiz) => {
+      .then((quiz: QuizResponse) => {
         setAnimeId(quiz.anime.id);
         setQuizDate(quiz.quizDate);
         setQuizType(quiz.quizType);
+        setQuizImage(quiz.quizImage ?? null);
+        setQuizImagePreview(
+          quiz.quizImage ? `${API_BASE}/uploads/quizzes/${quiz.quizImage}` : null
+        );
 
         setHints(
-          quiz.hints.map((h: any) => ({
+          quiz.hints.map((h) => ({
             id: h.id,
             orderNumber: h.orderNumber,
             hintText: h.hintText,
             hintType: h.hintType,
-            hintImage: h.hintImage,
+            hintImage: h.hintImage ?? undefined,
             hintImagePreview: h.hintImage
-              ? `http://localhost:8080/uploads/hints/${h.hintImage}`
+              ? `${API_BASE}/uploads/hints/${h.hintImage}`
               : undefined,
           }))
         );
@@ -55,6 +79,11 @@ function QuizEditPage() {
     formData.append("animeId", animeId.toString());
     formData.append("quizDate", quizDate);
     formData.append("quizType", quizType);
+    if (quizImageFile) {
+      formData.append("quizImage", quizImageFile);
+    } else {
+      formData.append("existingQuizImage", quizImage ?? "");
+    }
 
     hints.forEach((hint, index) => {
       formData.append(`hints[${index}][orderNumber]`, hint.orderNumber.toString())
@@ -74,7 +103,7 @@ function QuizEditPage() {
     })
 
     formData.append("_method", "PUT");
-    await fetch(`http://localhost:8080/api/quizzes/${id}`, {
+    await fetch(apiUrl(`/api/quizzes/${id}`), {
       method: "POST",
       headers: authHeaders(token),
       body: formData,
@@ -85,7 +114,7 @@ function QuizEditPage() {
 
   return (
     <div className="page-container">
-      <h2>Edit Quiz</h2>
+      <h2>Modifier un quizz</h2>
 
       <form onSubmit={submit}>
         <input
@@ -100,11 +129,31 @@ function QuizEditPage() {
           <option value="manga">Manga</option>
         </select>
 
+        <div className="form-group">
+          <label>Image de couverture du quizz (fin de partie)</label>
+          <input
+            type="file"
+            accept="image/*"
+            onChange={(e) => {
+              const file = e.target.files?.[0] ?? null;
+              setQuizImageFile(file);
+              setQuizImagePreview(file ? URL.createObjectURL(file) : null);
+            }}
+          />
+          {quizImagePreview && (
+            <img
+              src={quizImagePreview}
+              alt="Quiz cover preview"
+              className="hint-image-preview"
+            />
+          )}
+        </div>
+
         {hints.map((hint, index) => (
           <div key={index} className="hint-block">
             {/* Header */}
             <div className="hint-header">
-              <strong>Hint #{index + 1}</strong>
+              <strong>Indice #{index + 1}</strong>
 
               <button
                 type="button"
@@ -114,12 +163,12 @@ function QuizEditPage() {
                   setHints(copy);
                 }}
               >
-                ❌ Remove
+                ❌ Supprimer l'indice
               </button>
             </div>
 
             <div className="form-group">
-              <label>Order number</label>
+              <label>Ordre</label>
               <input
                 type="number"
                 min={1}
@@ -133,7 +182,7 @@ function QuizEditPage() {
             </div>
 
             <div className="form-group">
-              <label>Hint type</label>
+              <label>Type d'indice</label>
               <select
                 value={hint.hintType}
                 onChange={(e) => {
@@ -142,13 +191,13 @@ function QuizEditPage() {
                   setHints(copy);
                 }}
               >
-                <option value="text">Text</option>
+                <option value="text">Texte</option>
                 <option value="image">Image</option>
               </select>
             </div>
 
             <div className="form-group">
-              <label>Hint text</label>
+              <label>Texte de l'indice</label>
               <textarea
                 value={hint.hintText}
                 onChange={(e) => {
@@ -156,13 +205,13 @@ function QuizEditPage() {
                   copy[index].hintText = e.target.value;
                   setHints(copy);
                 }}
-                placeholder="Enter hint text..."
+                placeholder="Année de diffusion : 2008"
               />
             </div>
 
             {hint.hintType === "image" && (
               <div className="form-group">
-                <label>Hint image</label>
+                <label>Image de l'indice</label>
 
                 <input
                   type="file"
@@ -205,10 +254,10 @@ function QuizEditPage() {
               ])
             }
           >
-            + Add hint
+            + Ajouter un indice
           </button>
 
-          <button type="submit">Save quiz</button>
+          <button type="submit">Sauvegarder les modifications</button>
         </div>
       </form>
     </div>
@@ -216,3 +265,4 @@ function QuizEditPage() {
 }
 
 export default QuizEditPage;
+

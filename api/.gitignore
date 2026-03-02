@@ -9,4 +9,6 @@
 /var/
 /vendor/
 /public/uploads/hints
+/public/uploads/avatar
+/public/uploads/quizzes
 ###< symfony/framework-bundle ###

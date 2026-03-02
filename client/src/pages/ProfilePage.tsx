@@ -1,9 +1,8 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { useAuth } from "../auth/AuthContext";
+import { useAuth } from "../auth/useAuth";
 import { authHeaders } from "../auth/authHeaders";
-
-const API_BASE = "http://localhost:8080";
+import { API_BASE, apiUrl } from "../config/api";
 
 export default function ProfilePage() {
   const { user, token, refreshUser } = useAuth();
@@ -34,7 +33,7 @@ export default function ProfilePage() {
     formData.append("avatar", file);
 
     try {
-      const res = await fetch(`${API_BASE}/api/me/avatar`, {
+      const res = await fetch(apiUrl("/api/me/avatar"), {
         method: "POST",
         headers: authHeaders(token),
         body: formData,
@@ -66,7 +65,7 @@ export default function ProfilePage() {
           <h2>{user.username}</h2>
           <p>{user.email}</p>
           <label className="upload-button">
-            {uploading ? "Uploading..." : "Upload avatar"}
+            {uploading ? "En cours d'upload..." : "Changer d'avatar"}
             <input
               type="file"
               accept="image/*"
@@ -79,9 +78,9 @@ export default function ProfilePage() {
       </div>
 
       <section className="history-section">
-        <h3>Quiz history</h3>
+        <h3>Statistiques</h3>
         {user.attempts.length === 0 ? (
-          <p>No attempts yet.</p>
+          <p>Aucune statistique pour le moment</p>
         ) : (
           <div className="attempt-grid">
             {user.attempts.map((attempt) => (
@@ -89,19 +88,19 @@ export default function ProfilePage() {
                 <div className="attempt-header">
                   <span className="attempt-date">{attempt.quiz.quizDate}</span>
                   <span className={`attempt-status ${attempt.status}`}>
-                    {attempt.status === "won" ? "Won" : "Lost"}
+                    {attempt.status === "won" ? "Victoire" : "Perdu"}
                   </span>
                 </div>
                 <p className="attempt-title">
                   {attempt.answer.titleJapanese}
-                  {attempt.answer.titleEnglish ? ` (${attempt.answer.titleEnglish})` : ""}
+                  {/* {attempt.answer.titleEnglish ? ` (${attempt.answer.titleEnglish})` : ""} */}
                 </p>
                 <p className="attempt-meta">
-                  Type: {attempt.quiz.quizType} · Hints used: {attempt.hintsUsed}
+                  Type: {attempt.quiz.quizType} · Nombre d'indices utilisés: {attempt.hintsUsed}
                 </p>
-                {attempt.guessValue && (
-                  <p className="attempt-guess">Last guess: {attempt.guessValue}</p>
-                )}
+                {/* {attempt.guessValue && (
+                  <p className="attempt-guess">Dernière tentative: {attempt.guessValue}</p>
+                )} */}
               </div>
             ))}
           </div>
@@ -109,9 +108,10 @@ export default function ProfilePage() {
       </section>
       <Link to="/">
         <button type="button" className="ghost-button">
-          Back to Homepage
+          Retour à l'accueil
         </button>
       </Link>
     </div>
   );
 }
+

@@ -1,5 +1,16 @@
 # React + TypeScript + Vite
 
+## API configuration
+
+The frontend API base URL is configured with `VITE_API_BASE_URL`.
+
+1. Copy `.env.example` to `.env.local`.
+2. Set the backend URL, for example:
+
+```bash
+VITE_API_BASE_URL=http://localhost:8080
+```
+
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
 Currently, two official plugins are available:

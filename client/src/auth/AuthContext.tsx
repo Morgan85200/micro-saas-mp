@@ -1,54 +1,13 @@
-import { createContext, useContext, useEffect, useMemo, useState } from "react";
-
-const API_BASE = "http://localhost:8080";
-
-export type Attempt = {
-  id: number;
-  status: "won" | "lost";
-  hintsUsed: number;
-  guessValue?: string | null;
-  guessedAt: string;
-  quiz: {
-    id: number;
-    quizDate: string;
-    quizType: string;
-  };
-  answer: {
-    animeId: number;
-    titleJapanese: string;
-    titleEnglish?: string | null;
-  };
-};
-
-export type UserProfile = {
-  id: number;
-  email: string;
-  username: string;
-  roles: string[];
-  avatarPath?: string | null;
-  attempts: Attempt[];
-};
-
-type AuthContextValue = {
-  user: UserProfile | null;
-  token: string | null;
-  loading: boolean;
-  login: (email: string, password: string) => Promise<boolean>;
-  register: (email: string, username: string, password: string) => Promise<boolean>;
-  logout: () => void;
-  refreshUser: () => Promise<void>;
-};
-
-const AuthContext = createContext<AuthContextValue | undefined>(undefined);
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { AuthContext, type AuthContextValue, type UserProfile } from "./authContextStore";
+import { apiUrl } from "../config/api";
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [token, setToken] = useState<string | null>(
-    localStorage.getItem("auth_token")
-  );
+  const [token, setToken] = useState<string | null>(localStorage.getItem("auth_token"));
   const [user, setUser] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
 
-  const refreshUser = async () => {
+  const refreshUser = useCallback(async () => {
     if (!token) {
       setUser(null);
       setLoading(false);
@@ -56,7 +15,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     try {
-      const res = await fetch(`${API_BASE}/api/me`, {
+      const res = await fetch(apiUrl("/api/me"), {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (!res.ok) {
@@ -64,6 +23,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setLoading(false);
         return;
       }
+
       const json = await res.json();
       setUser(json);
     } catch (err) {
@@ -72,25 +32,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [token]);
 
   useEffect(() => {
     refreshUser();
-  }, [token]);
+  }, [refreshUser]);
 
-  const login = async (email: string, password: string) => {
+  const login = useCallback(async (email: string, password: string) => {
     setLoading(true);
+
     try {
-      const res = await fetch(`${API_BASE}/api/login`, {
+      const res = await fetch(apiUrl("/api/login"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       });
+
       const data = await res.json();
       if (!res.ok || !data?.token) {
         setLoading(false);
         return false;
       }
+
       localStorage.setItem("auth_token", data.token);
       setToken(data.token);
       return true;
@@ -99,11 +62,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setLoading(false);
       return false;
     }
-  };
+  }, []);
 
-  const register = async (email: string, username: string, password: string) => {
+  const register = useCallback(async (email: string, username: string, password: string) => {
     try {
-      const res = await fetch(`${API_BASE}/api/register`, {
+      const res = await fetch(apiUrl("/api/register"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, username, password }),
@@ -113,26 +76,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.error("Registration failed", err);
       return false;
     }
-  };
+  }, []);
 
-  const logout = () => {
+  const logout = useCallback(() => {
     localStorage.removeItem("auth_token");
     setToken(null);
     setUser(null);
-  };
+  }, []);
 
-  const value = useMemo(
+  const value = useMemo<AuthContextValue>(
     () => ({ user, token, loading, login, register, logout, refreshUser }),
-    [user, token, loading]
+    [user, token, loading, login, register, logout, refreshUser]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-}
-
-export function useAuth() {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error("useAuth must be used within an AuthProvider");
-  }
-  return context;
 }

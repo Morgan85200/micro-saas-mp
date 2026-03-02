@@ -42,6 +42,10 @@ jobs:
         working-directory: ./api
         run: composer install --no-progress --no-interaction
 
+      - name: 🔒 Composer audit
+        working-directory: ./api
+        run: composer audit --no-interaction
+
       - name: 🧪 Lint PHP code
         working-directory: ./api
         run: |
@@ -72,6 +76,10 @@ jobs:
       - name: 📦 Install dependencies
         working-directory: ./client
         run: npm ci
+
+      - name: 🔒 NPM audit
+        working-directory: ./client
+        run: npm audit --audit-level=high --omit=dev
 
       - name: 🔍 Lint frontend
         working-directory: ./client

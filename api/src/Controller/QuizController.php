@@ -39,6 +39,7 @@ class QuizController extends AbstractController
             'id' => $q->getId(),
             'quizDate' => $q->getQuizDate()?->format('Y-m-d'),
             'quizType' => $q->getQuizType(),
+            'quizImage' => $q->getQuizImage(),
             'anime' => [
                 'id' => $q->getAnime()?->getId(),
                 'titleJapanese' => $q->getAnime()?->getTitleJapanese(),
@@ -71,7 +72,7 @@ class QuizController extends AbstractController
         ]);
 
         if (!$quiz) {
-            return new JsonResponse(['error' => 'No quiz for today'], 404);
+            return new JsonResponse(['error' => "Aucun quizz programmé aujourd'hui"], 404);
         }
 
         return $this->quizToJson($quiz);
@@ -106,6 +107,9 @@ class QuizController extends AbstractController
         $quiz->setAnime($anime);
         $quiz->setQuizType($data['quizType'] ?? 'anime');
         $quiz->setQuizDate(new \DateTime($data['quizDate'] ?? 'today'));
+        if (isset($files['quizImage']) && $files['quizImage'] instanceof UploadedFile) {
+            $quiz->setQuizImage($this->uploadQuizImage($files['quizImage']));
+        }
 
         foreach ($data['hints'] ?? [] as $index => $h) {
             $hint = new Hint();
@@ -166,6 +170,13 @@ class QuizController extends AbstractController
 
         if (isset($data['quizType'])) {
             $quiz->setQuizType($data['quizType']);
+        }
+
+        if (isset($files['quizImage']) && $files['quizImage'] instanceof UploadedFile) {
+            $quiz->setQuizImage($this->uploadQuizImage($files['quizImage']));
+        } elseif (array_key_exists('existingQuizImage', $data)) {
+            $existingQuizImage = trim((string) $data['existingQuizImage']);
+            $quiz->setQuizImage($existingQuizImage !== '' ? $existingQuizImage : null);
         }
         
         // 🔥 Properly delete old hints
@@ -290,6 +301,7 @@ class QuizController extends AbstractController
             'id' => $quiz->getId(),
             'quizDate' => $quiz->getQuizDate()?->format('Y-m-d'),
             'quizType' => $quiz->getQuizType(),
+            'quizImage' => $quiz->getQuizImage(),
             'anime' => [
                 'id' => $quiz->getAnime()?->getId(),
                 'titleJapanese' => $quiz->getAnime()?->getTitleJapanese(),
@@ -302,5 +314,19 @@ class QuizController extends AbstractController
                 'hintType' => $h->getHintType(),
             ], $hints),
         ]);
+    }
+
+    private function uploadQuizImage(UploadedFile $file): string
+    {
+        $filename = uniqid().'_'.$file->getClientOriginalName();
+        $uploadDir = $this->getParameter('kernel.project_dir').'/public/uploads/quizzes';
+
+        if (!is_dir($uploadDir)) {
+            mkdir($uploadDir, 0775, true);
+        }
+
+        $file->move($uploadDir, $filename);
+
+        return $filename;
     }
 }

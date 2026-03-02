@@ -58,6 +58,13 @@
   animation: floatIn 0.6s ease both;
 }
 
+.home-logo {
+  display: block;
+  margin: 0 auto 1rem;
+  height: 84px;
+  width: auto;
+}
+
 .home-tag {
   letter-spacing: 0.3rem;
   text-transform: uppercase;
@@ -169,8 +176,7 @@
 }
 
 .hint-image img {
-  width: 100%;
-  height: 100%;
+  padding: 3%;
   object-fit: cover;
 }
 
@@ -248,6 +254,7 @@
   font-weight: 600;
   color: var(--accent-warm);
   animation: fadeIn 0.3s ease both;
+  margin-bottom: 10px;
 }
 
 .quiz-modal {
@@ -275,6 +282,21 @@
 .modal-text {
   margin: 1rem 0 1.5rem;
   color: rgba(28, 23, 20, 0.75);
+}
+
+.quiz-cover-image {
+  margin: 0 auto 1.25rem;
+  width: min(260px, 100%);
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid rgba(28, 23, 20, 0.2);
+  background: rgba(28, 23, 20, 0.05);
+}
+
+.quiz-cover-image img {
+  display: block;
+  width: 100%;
+  height: auto;
 }
 
 @keyframes riseIn {

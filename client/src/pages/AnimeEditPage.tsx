@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Spinner from "../components/Spinner";
-import { useAuth } from "../auth/AuthContext";
+import { useAuth } from "../auth/useAuth";
 import { authHeaders } from "../auth/authHeaders";
+import { apiUrl } from "../config/api";
 
 interface Genre {
   id: number;
@@ -31,7 +32,7 @@ function AnimeEditPage() {
 
   // Fetch existing anime data
   useEffect(() => {
-    fetch(`http://localhost:8080/api/animes/${id}`)
+    fetch(apiUrl(`/api/animes/${id}`))
       .then((res) => res.json())
       .then((data: Anime) => {
         setTitleJapanese(data.titleJapanese);
@@ -48,7 +49,7 @@ function AnimeEditPage() {
 
   // Fetch all genres for multi-select
   useEffect(() => {
-    fetch("http://localhost:8080/api/genres")
+    fetch(apiUrl("/api/genres"))
       .then((res) => res.json())
       .then((data: Genre[]) => setAllGenres(data))
       .catch((err) => console.error("Failed to fetch genres:", err));
@@ -56,7 +57,7 @@ function AnimeEditPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await fetch(`http://localhost:8080/api/animes/${id}`, {
+    await fetch(apiUrl(`/api/animes/${id}`), {
       method: "PUT",
       headers: authHeaders(token, { "Content-Type": "application/json" }),
       body: JSON.stringify({ titleJapanese, titleEnglish, releaseDate, genreIds }),
@@ -74,10 +75,10 @@ function AnimeEditPage() {
 
   return (
     <div className="page-container">
-      <h2>Edit Anime</h2>
+      <h2>Modifier l'anime</h2>
       <form className="anime-form" onSubmit={handleSubmit}>
         <div className="form-group">
-          <label><strong>Original Title:</strong></label>
+          <label><strong>Titre original:</strong></label>
           <input
             value={titleJapanese}
             onChange={(e) => setTitleJapanese(e.target.value)}
@@ -85,11 +86,11 @@ function AnimeEditPage() {
           />
         </div>
         <div className="form-group">
-          <label><strong>English Title:</strong></label>
+          <label><strong>Titre anglais:</strong></label>
           <input value={titleEnglish} onChange={(e) => setTitleEnglish(e.target.value)} />
         </div>
         <div className="form-group">
-          <label><strong>Premiered:</strong></label>
+          <label><strong>A débuté le:</strong></label>
           <input
             type="date"
             value={releaseDate}
@@ -114,8 +115,8 @@ function AnimeEditPage() {
           </div>
         </div>
         <div className="form-buttons">
-          <button type="submit">Save</button>
-          <button type="button" onClick={() => navigate("/anime")}>Return to List</button>
+          <button type="submit">Sauvegarder les modifications</button>
+          <button type="button" onClick={() => navigate("/anime")}>Retour à la liste</button>
         </div>
       </form>
     </div>
@@ -123,3 +124,4 @@ function AnimeEditPage() {
 }
 
 export default AnimeEditPage;
+

@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Spinner from "../components/Spinner";
-import { useAuth } from "../auth/AuthContext";
+import { useAuth } from "../auth/useAuth";
 import { authHeaders } from "../auth/authHeaders";
+import { apiUrl } from "../config/api";
 
 interface Genre {
   id: number;
@@ -17,7 +18,7 @@ function GenreEditPage() {
   const { token } = useAuth();
 
   useEffect(() => {
-    fetch(`http://localhost:8080/api/genres/${id}`)
+    fetch(apiUrl(`/api/genres/${id}`))
       .then((res) => res.json())
       .then((data: Genre) => {
         setName(data.name);
@@ -31,7 +32,7 @@ function GenreEditPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await fetch(`http://localhost:8080/api/genres/${id}`, {
+    await fetch(apiUrl(`/api/genres/${id}`), {
       method: "PUT",
       headers: authHeaders(token, { "Content-Type": "application/json" }),
       body: JSON.stringify({ name }),
@@ -43,10 +44,10 @@ function GenreEditPage() {
 
   return (
     <div className="page-container">
-      <h2>Edit Genre</h2>
+      <h2>Modifier un genre</h2>
       <form className="genre-form" onSubmit={handleSubmit}>
         <div className="form-group">
-          <label><strong>Name:</strong></label>
+          <label><strong>Nom:</strong></label>
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
@@ -54,8 +55,8 @@ function GenreEditPage() {
           />
         </div>
         <div className="form-buttons">
-          <button type="submit">Save</button>
-          <button type="button" onClick={() => navigate("/genres")}>Return to List</button>
+          <button type="submit">Sauvegarder les modifications</button>
+          <button type="button" onClick={() => navigate("/genres")}>Retour à la liste</button>
         </div>
       </form>
     </div>
@@ -63,3 +64,4 @@ function GenreEditPage() {
 }
 
 export default GenreEditPage;
+

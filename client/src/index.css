@@ -3,9 +3,9 @@
   line-height: 1.5;
   font-weight: 400;
 
-  color-scheme: light dark;
+  color-scheme: light;
   color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+  /* background-color: #242424; */ 
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -13,13 +13,20 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+html, body, #root {
+  min-height: 100%;
+}
+
 /* Reset default styles */
 body {
   margin: 0;
   min-width: 320px;
-  min-height: 100vh;
-  background-color: var(--bg-color, #242424);
+  min-height: 100%;
+  background:
+    linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)),
+    url("/images/background.jpg") center / cover no-repeat fixed;
   color: var(--text-color, #fff);
+  font-family: 'M PLUS Rounded 1c', sans-serif;
 }
 
 /* Header navigation */
@@ -49,7 +56,13 @@ header.app-header nav {
 
 header.app-header h1 {
   margin: 0;
-  font-size: 2.2rem;
+  line-height: 0;
+}
+
+.brand-logo {
+  height: 56px;
+  width: auto;
+  display: block;
 }
 
 .header-right {
@@ -115,14 +128,18 @@ a:hover {
 /* Main container */
 main {
   max-width: 1200px;
-  margin: 2rem auto;
-  padding: 0 1rem;
+  margin: 0 auto;
+  padding: 1rem;
 }
 
 .page-container {
   max-width: 1200px;
-  margin: 2rem auto;
-  padding: 1rem;
+  margin: 1rem auto;
+  padding: 1.25rem;
+  background-color: rgba(243, 228, 207, 0.9);
+  color: #1c1714;
+  border-radius: 14px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
 }
 
 /* Lists */
@@ -132,7 +149,7 @@ ul {
 }
 
 li {
-  background-color: #1a1a1a;
+  background-color: #ffffff;
   margin-bottom: 1rem;
   padding: 1rem;
   border-radius: 8px;
@@ -152,6 +169,7 @@ button {
   color: #fff;
   cursor: pointer;
   transition: all 0.2s;
+  margin-right: 10px;
 }
 
 button:hover {
@@ -173,8 +191,9 @@ input, select {
   border: 1px solid #333;
   width: 100%;
   max-width: 400px;
-  background-color: #1a1a1a;
-  color: #fff;
+  background-color: #ffffff;
+  color: #000000;
+  margin-right: 10px;
 }
 
 /* Spinner */
@@ -199,7 +218,7 @@ input, select {
   padding: 1rem;
   margin-bottom: 1rem;
   border-radius: 8px;
-  background-color: #1a1a1a;
+  background-color: #ffffff;
 }
 
 .anime-buttons {
@@ -226,8 +245,8 @@ input, select {
   padding: 0.5rem;
   border-radius: 6px;
   border: 1px solid #646cff55;
-  background-color: #1a1a1a;
-  color: white;
+  background-color: #ffffff;
+  color: rgb(0, 0, 0);
   width: 100%;
 }
 
@@ -235,6 +254,21 @@ input, select {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  width: fit-content;
+  white-space: nowrap;
+}
+
+.genre-checkbox input[type="checkbox"] {
+  width: auto;
+  max-width: none;
+  margin: 0;
+  flex: 0 0 auto;
+}
+
+.genre-checkboxes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.25rem;
 }
 
 .form-buttons {
@@ -331,18 +365,18 @@ textarea {
 }
 
 .attempt-card {
-  background-color: #1a1a1a;
+  background-color: #ffffff;
   border-radius: 10px;
   padding: 1rem;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
 }
 
 .attempt-card.won {
-  border: 1px solid rgba(72, 222, 129, 0.7);
+  border: 2px solid rgba(72, 222, 129, 0.7);
 }
 
 .attempt-card.lost {
-  border: 1px solid rgba(255, 99, 99, 0.7);
+  border: 2px solid rgba(255, 99, 99, 0.7);
 }
 
 .attempt-header {
@@ -370,7 +404,7 @@ textarea {
 .attempt-meta,
 .attempt-guess {
   font-size: 0.9rem;
-  color: rgba(255, 255, 255, 0.7);
+  color: rgba(28, 23, 20, 0.8);
 }
 
 .hint-image-section {
