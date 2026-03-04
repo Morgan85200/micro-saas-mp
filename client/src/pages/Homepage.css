@@ -177,6 +177,8 @@
 
 .hint-image img {
   padding: 3%;
+  height: 100%;
+  width: auto;
   object-fit: cover;
 }
 
@@ -277,6 +279,8 @@
   text-align: center;
   box-shadow: 0 25px 45px rgba(0, 0, 0, 0.3);
   animation: floatIn 0.4s ease both;
+  position: relative;
+  z-index: 2;
 }
 
 .modal-text {
@@ -297,6 +301,88 @@
   display: block;
   width: 100%;
   height: auto;
+}
+
+.quiz-fireworks {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.firework {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #ffd35a;
+  box-shadow:
+    0 0 0 0 #ffd35a,
+    0 0 0 0 #ff8a5b,
+    0 0 0 0 #61dafb,
+    0 0 0 0 #9d8cff;
+  opacity: 0;
+  animation: fireworksBurst 1.35s ease-out infinite;
+}
+
+.firework-1 {
+  top: 16%;
+  left: 20%;
+  animation-delay: 0s;
+}
+
+.firework-2 {
+  top: 22%;
+  right: 18%;
+  animation-delay: 0.2s;
+}
+
+.firework-3 {
+  top: 68%;
+  left: 16%;
+  animation-delay: 0.45s;
+}
+
+.firework-4 {
+  top: 72%;
+  right: 16%;
+  animation-delay: 0.7s;
+}
+
+.firework-5 {
+  top: 12%;
+  left: 48%;
+  animation-delay: 0.9s;
+}
+
+.firework-6 {
+  top: 78%;
+  left: 52%;
+  animation-delay: 1.1s;
+}
+
+@keyframes fireworksBurst {
+  0% {
+    opacity: 0;
+    transform: scale(0.15);
+    box-shadow:
+      0 0 0 0 #ffd35a,
+      0 0 0 0 #ff8a5b,
+      0 0 0 0 #61dafb,
+      0 0 0 0 #9d8cff;
+  }
+  20% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1);
+    box-shadow:
+      -24px -12px 0 5px #ffd35a,
+      24px -12px 0 5px #ff8a5b,
+      -18px 18px 0 5px #61dafb,
+      18px 18px 0 5px #9d8cff;
+  }
 }
 
 @keyframes riseIn {

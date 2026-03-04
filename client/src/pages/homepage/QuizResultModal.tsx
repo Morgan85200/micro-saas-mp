@@ -23,26 +23,36 @@ export default function QuizResultModal({
 
   return (
     <div className="quiz-modal">
+      {isWon && (
+        <div className="quiz-fireworks" aria-hidden="true">
+          <span className="firework firework-1" />
+          <span className="firework firework-2" />
+          <span className="firework firework-3" />
+          <span className="firework firework-4" />
+          <span className="firework firework-5" />
+          <span className="firework firework-6" />
+        </div>
+      )}
       <div className="quiz-modal-card">
-        <h3>{isWon ? "Bien joue !" : "Plus aucun indice disponible..."}</h3>
+        <h3>{isWon ? "Bien joué !" : "Plus aucun indice disponible..."}</h3>
         <p className="modal-text">
           {isWon
-            ? `La reponse etait bien ${displayAnswer}.`
-            : `La reponse correcte etait ${displayAnswer}.`}
+            ? `La réponse était bien ${displayAnswer}.`
+            : `La réponse correcte était ${displayAnswer}.`}
         </p>
         {quizImageUrl && (
           <div className="quiz-cover-image">
-            <img src={quizImageUrl} alt="Couverture de la reponse" />
+            <img src={quizImageUrl} alt="Couverture de la réponse" />
           </div>
         )}
         {shareText && (
           <button className="ghost-button" onClick={onCopyShareText}>
-            Partager mon resultat
+            Partager mon résultat
           </button>
         )}
         {copyMessage && <p className="hint-feedback">{copyMessage}</p>}
         <button className="primary-button" onClick={onBack}>
-          Retour a l'accueil
+          Retour à l'accueil
         </button>
       </div>
     </div>

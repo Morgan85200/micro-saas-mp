@@ -7,6 +7,7 @@ import { apiUrl } from "../config/api";
 interface Anime {
   id: number;
   titleJapanese: string;
+  titleEnglish?: string | null;
 }
 
 type HintForm = {
@@ -17,9 +18,9 @@ type HintForm = {
   hintImagePreview?: string;
 };
 
-
 function QuizCreatePage() {
   const [animeId, setAnimeId] = useState<number | null>(null);
+  const [animeQuery, setAnimeQuery] = useState("");
   const [quizDate, setQuizDate] = useState("");
   const [quizType, setQuizType] = useState("anime");
   const [quizImageFile, setQuizImageFile] = useState<File | null>(null);
@@ -32,59 +33,83 @@ function QuizCreatePage() {
   useEffect(() => {
     fetch(apiUrl("/api/animes?limit=500"))
       .then((res) => res.json())
-      .then((json) => setAnimes(json.animes));
+      .then((json) => setAnimes(json.animes ?? []));
   }, []);
+
+  const resolveAnimeId = (value: string) => {
+    const normalized = value.trim().toLowerCase();
+    const match = animes.find((anime) => {
+      const jp = anime.titleJapanese?.trim().toLowerCase() ?? "";
+      const en = anime.titleEnglish?.trim().toLowerCase() ?? "";
+      return normalized === jp || normalized === en;
+    });
+    setAnimeId(match?.id ?? null);
+  };
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-  
+
     if (!animeId) return;
-  
+
     const formData = new FormData();
-  
+
     formData.append("animeId", animeId.toString());
     formData.append("quizDate", quizDate);
     formData.append("quizType", quizType);
     if (quizImageFile) {
       formData.append("quizImage", quizImageFile);
     }
-  
+
     hints.forEach((hint, index) => {
       formData.append(`hints[${index}][orderNumber]`, hint.orderNumber.toString());
       formData.append(`hints[${index}][hintText]`, hint.hintText);
       formData.append(`hints[${index}][hintType]`, hint.hintType);
-  
+
       if (hint.hintType === "image" && hint.hintImageFile) {
-        formData.append(
-          `hints[${index}][hintImage]`,
-          hint.hintImageFile
-        );
+        formData.append(`hints[${index}][hintImage]`, hint.hintImageFile);
       }
     });
-  
+
     await fetch(apiUrl("/api/quizzes"), {
       method: "POST",
       headers: authHeaders(token),
       body: formData,
     });
-  
+
     navigate("/quizzes");
   };
-  
 
   return (
     <div className="page-container">
-      <h2>Créer un quizz</h2>
+      <h2>Creer un quizz</h2>
 
       <form onSubmit={submit}>
-        <select onChange={(e) => setAnimeId(Number(e.target.value))} required>
-          <option value="">Sélectionner un anime</option>
-          {animes.map((a) => (
-            <option key={a.id} value={a.id}>
-              {a.titleJapanese}
-            </option>
-          ))}
-        </select>
+        <div className="form-group">
+          <label htmlFor="anime-query">Selectionner une oeuvre</label>
+          <input
+            id="anime-query"
+            list="anime-options"
+            type="text"
+            placeholder="Ex: Dragon Ball"
+            value={animeQuery}
+            onChange={(e) => {
+              const value = e.target.value;
+              setAnimeQuery(value);
+              resolveAnimeId(value);
+            }}
+            required
+          />
+          <datalist id="anime-options">
+            {animes.map((anime) => (
+              <option key={`${anime.id}-jp`} value={anime.titleJapanese} />
+            ))}
+            {animes
+              .filter((anime) => anime.titleEnglish)
+              .map((anime) => (
+                <option key={`${anime.id}-en`} value={anime.titleEnglish || ""} />
+              ))}
+          </datalist>
+        </div>
 
         <input
           type="date"
@@ -110,11 +135,7 @@ function QuizCreatePage() {
             }}
           />
           {quizImagePreview && (
-            <img
-              src={quizImagePreview}
-              alt="Quiz cover preview"
-              className="hint-image-preview"
-            />
+            <img src={quizImagePreview} alt="Quiz cover preview" className="hint-image-preview" />
           )}
         </div>
 
@@ -136,10 +157,8 @@ function QuizCreatePage() {
           </button>
         </div>
 
-
         {hints.map((hint, index) => (
           <div key={index} className="hint-block">
-            {/* Header */}
             <div className="hint-header">
               <strong>Indice #{index + 1}</strong>
 
@@ -151,7 +170,7 @@ function QuizCreatePage() {
                   setHints(copy);
                 }}
               >
-                ❌ Supprimer
+                Supprimer
               </button>
             </div>
 
@@ -193,7 +212,7 @@ function QuizCreatePage() {
                   copy[index].hintText = e.target.value;
                   setHints(copy);
                 }}
-                placeholder="Année de publication : 2007"
+                placeholder="Annee de publication : 2007"
               />
             </div>
 
@@ -216,11 +235,7 @@ function QuizCreatePage() {
                 />
 
                 {hint.hintImagePreview && (
-                  <img
-                    src={hint.hintImagePreview}
-                    alt="Hint preview"
-                    className="hint-image-preview"
-                  />
+                  <img src={hint.hintImagePreview} alt="Hint preview" className="hint-image-preview" />
                 )}
               </div>
             )}
@@ -228,7 +243,7 @@ function QuizCreatePage() {
         ))}
 
         <div>
-          <button type="submit">Créer</button>
+          <button type="submit">Creer</button>
         </div>
       </form>
     </div>
@@ -236,4 +251,3 @@ function QuizCreatePage() {
 }
 
 export default QuizCreatePage;
-

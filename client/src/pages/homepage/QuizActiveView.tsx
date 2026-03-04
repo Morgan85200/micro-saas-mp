@@ -54,7 +54,7 @@ export default function QuizActiveView({
 
       <form className="guess-form" onSubmit={onSubmitGuess}>
         <label htmlFor="guess" className="guess-label">
-          Ecrivez votre reponse ici
+          Ecrivez votre réponse ici
         </label>
         <div className="guess-row">
           <input
@@ -62,14 +62,14 @@ export default function QuizActiveView({
             list="anime-list"
             type="text"
             placeholder={
-              loadingAnimes ? "Chargement des animes..." : "Commencez a ecrire un titre"
+              loadingAnimes ? "Chargement des animes..." : "Commencez à écrire un titre"
             }
             value={guess}
             onChange={(e) => onGuessChange(e.target.value)}
             autoComplete="off"
           />
           <button type="submit" className="primary-button" disabled={!guess.trim()}>
-            Valider votre reponse
+            Validez votre réponse
           </button>
         </div>
         <datalist id="anime-list">

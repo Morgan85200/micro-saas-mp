@@ -26,9 +26,9 @@ export default function QuizCompletedView({
           <p className="home-tag">Quizz du jour</p>
           <h2>{quiz.quizType === "anime" ? "Anime Quizz" : "Manga Quizz"}</h2>
         </div>
-        <div className="hint-counter">Termine</div>
+        <div className="hint-counter">Quizz Terminé</div>
       </div>
-      <p className="home-subtitle">Tu as deja termine le quizz d'aujourd'hui</p>
+      <p className="home-subtitle">Tu as deja terminé le quizz d'aujourd'hui</p>
       {quizImageUrl && (
         <div className="quiz-cover-image">
           <img src={quizImageUrl} alt="Couverture de la reponse" />
@@ -36,13 +36,13 @@ export default function QuizCompletedView({
       )}
       {completedAttempt && (
         <p className="hint-feedback">
-          Resultat: {completedAttempt.status === "won" ? "Victoire" : "Perdu"} · Indices utilises:{" "}
+          Résultat: {completedAttempt.status === "won" ? "Victoire" : "Perdu"} · Indices utilisés:{" "}
           {completedAttempt.hintsUsed}
         </p>
       )}
       {shareText && (
         <button className="ghost-button" onClick={onCopyShareText}>
-          Partager mon resultat
+          Partager mon résultat
         </button>
       )}
       {copyMessage && <p className="hint-feedback">{copyMessage}</p>}

@@ -323,7 +323,7 @@ export default function Homepage() {
         <HomepageAuth isAdmin={isAdmin} user={user} avatarUrl={avatarUrl} onLogout={logout} />
         <div className="quiz-shell">
           <Spinner />
-          <p className="home-subtitle">Chargement du quizz de la journee...</p>
+          <p className="home-subtitle">Chargement du quizz de la journée...</p>
         </div>
       </div>
     );

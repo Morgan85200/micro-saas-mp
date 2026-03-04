@@ -4,6 +4,12 @@ import { useAuth } from "../auth/useAuth";
 import { authHeaders } from "../auth/authHeaders";
 import { API_BASE, apiUrl } from "../config/api";
 
+interface Anime {
+  id: number;
+  titleJapanese: string;
+  titleEnglish?: string | null;
+}
+
 type HintForm = {
   id?: number;
   orderNumber: number;
@@ -35,6 +41,8 @@ function QuizEditPage() {
   const navigate = useNavigate();
 
   const [animeId, setAnimeId] = useState<number | null>(null);
+  const [animeQuery, setAnimeQuery] = useState("");
+  const [animes, setAnimes] = useState<Anime[]>([]);
   const [quizDate, setQuizDate] = useState("");
   const [quizType, setQuizType] = useState("anime");
   const [quizImage, setQuizImage] = useState<string | null>(null);
@@ -44,6 +52,12 @@ function QuizEditPage() {
   const { token } = useAuth();
 
   useEffect(() => {
+    fetch(apiUrl("/api/animes?limit=500"))
+      .then((res) => res.json())
+      .then((json) => setAnimes(json.animes ?? []));
+  }, []);
+
+  useEffect(() => {
     fetch(apiUrl(`/api/quizzes/${id}`))
       .then((res) => res.json())
       .then((quiz: QuizResponse) => {
@@ -51,9 +65,7 @@ function QuizEditPage() {
         setQuizDate(quiz.quizDate);
         setQuizType(quiz.quizType);
         setQuizImage(quiz.quizImage ?? null);
-        setQuizImagePreview(
-          quiz.quizImage ? `${API_BASE}/uploads/quizzes/${quiz.quizImage}` : null
-        );
+        setQuizImagePreview(quiz.quizImage ? `${API_BASE}/uploads/quizzes/${quiz.quizImage}` : null);
 
         setHints(
           quiz.hints.map((h) => ({
@@ -62,13 +74,28 @@ function QuizEditPage() {
             hintText: h.hintText,
             hintType: h.hintType,
             hintImage: h.hintImage ?? undefined,
-            hintImagePreview: h.hintImage
-              ? `${API_BASE}/uploads/hints/${h.hintImage}`
-              : undefined,
+            hintImagePreview: h.hintImage ? `${API_BASE}/uploads/hints/${h.hintImage}` : undefined,
           }))
         );
       });
   }, [id]);
+
+  useEffect(() => {
+    if (!animeId || animes.length === 0) return;
+    const selectedAnime = animes.find((anime) => anime.id === animeId);
+    if (!selectedAnime) return;
+    setAnimeQuery(selectedAnime.titleJapanese);
+  }, [animeId, animes]);
+
+  const resolveAnimeId = (value: string) => {
+    const normalized = value.trim().toLowerCase();
+    const match = animes.find((anime) => {
+      const jp = anime.titleJapanese?.trim().toLowerCase() ?? "";
+      const en = anime.titleEnglish?.trim().toLowerCase() ?? "";
+      return normalized === jp || normalized === en;
+    });
+    setAnimeId(match?.id ?? null);
+  };
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -86,21 +113,18 @@ function QuizEditPage() {
     }
 
     hints.forEach((hint, index) => {
-      formData.append(`hints[${index}][orderNumber]`, hint.orderNumber.toString())
-      formData.append(`hints[${index}][hintText]`, hint.hintText)
-      formData.append(`hints[${index}][hintType]`, hint.hintType)
-    
+      formData.append(`hints[${index}][orderNumber]`, hint.orderNumber.toString());
+      formData.append(`hints[${index}][hintText]`, hint.hintText);
+      formData.append(`hints[${index}][hintType]`, hint.hintType);
+
       if (hint.hintType === "image") {
-        // If a new file was uploaded, send it
         if (hint.hintImageFile) {
-          formData.append(`hints[${index}][hintImage]`, hint.hintImageFile)
-        }
-        // NEW: Send existing image filename to preserve it
-        else if (hint.hintImage) {
-          formData.append(`hints[${index}][existingImage]`, hint.hintImage)
+          formData.append(`hints[${index}][hintImage]`, hint.hintImageFile);
+        } else if (hint.hintImage) {
+          formData.append(`hints[${index}][existingImage]`, hint.hintImage);
         }
       }
-    })
+    });
 
     formData.append("_method", "PUT");
     await fetch(apiUrl(`/api/quizzes/${id}`), {
@@ -117,6 +141,33 @@ function QuizEditPage() {
       <h2>Modifier un quizz</h2>
 
       <form onSubmit={submit}>
+        <div className="form-group">
+          <label htmlFor="anime-query">Selectionner une oeuvre</label>
+          <input
+            id="anime-query"
+            list="anime-options"
+            type="text"
+            placeholder="Ex: Dragon Ball"
+            value={animeQuery}
+            onChange={(e) => {
+              const value = e.target.value;
+              setAnimeQuery(value);
+              resolveAnimeId(value);
+            }}
+            required
+          />
+          <datalist id="anime-options">
+            {animes.map((anime) => (
+              <option key={`${anime.id}-jp`} value={anime.titleJapanese} />
+            ))}
+            {animes
+              .filter((anime) => anime.titleEnglish)
+              .map((anime) => (
+                <option key={`${anime.id}-en`} value={anime.titleEnglish || ""} />
+              ))}
+          </datalist>
+        </div>
+
         <input
           type="date"
           value={quizDate}
@@ -141,17 +192,12 @@ function QuizEditPage() {
             }}
           />
           {quizImagePreview && (
-            <img
-              src={quizImagePreview}
-              alt="Quiz cover preview"
-              className="hint-image-preview"
-            />
+            <img src={quizImagePreview} alt="Quiz cover preview" className="hint-image-preview" />
           )}
         </div>
 
         {hints.map((hint, index) => (
           <div key={index} className="hint-block">
-            {/* Header */}
             <div className="hint-header">
               <strong>Indice #{index + 1}</strong>
 
@@ -163,7 +209,7 @@ function QuizEditPage() {
                   setHints(copy);
                 }}
               >
-                ❌ Supprimer l'indice
+                Supprimer l'indice
               </button>
             </div>
 
@@ -205,7 +251,7 @@ function QuizEditPage() {
                   copy[index].hintText = e.target.value;
                   setHints(copy);
                 }}
-                placeholder="Année de diffusion : 2008"
+                placeholder="Annee de diffusion : 2008"
               />
             </div>
 
@@ -228,17 +274,12 @@ function QuizEditPage() {
                 />
 
                 {hint.hintImagePreview && (
-                  <img
-                    src={hint.hintImagePreview}
-                    alt="Hint preview"
-                    className="hint-image-preview"
-                  />
+                  <img src={hint.hintImagePreview} alt="Hint preview" className="hint-image-preview" />
                 )}
               </div>
             )}
           </div>
         ))}
-
 
         <div className="form-actions">
           <button
@@ -265,4 +306,3 @@ function QuizEditPage() {
 }
 
 export default QuizEditPage;
-
