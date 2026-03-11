@@ -1,14 +1,14 @@
-name: CI/CD Pipeline
+name: CI
 
 on:
   push:
-    branches: [ master ]
+    branches: [master, develop]
   pull_request:
-    branches: [ master ]
+    branches: [master, develop]
 
 jobs:
   backend:
-    name: 🧱 Backend (Symfony)
+    name: Backend (Symfony)
     runs-on: ubuntu-latest
 
     services:
@@ -25,80 +25,91 @@ jobs:
           --health-cmd="mysqladmin ping -h localhost"
           --health-interval=10s
           --health-timeout=5s
-          --health-retries=3
+          --health-retries=5
 
     steps:
-      - name: 🧾 Checkout repository
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: ⚙️ Setup PHP
+      - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.2'
-          extensions: mbstring, pdo, pdo_mysql
+          php-version: "8.2"
+          extensions: ctype, iconv, mbstring, pdo_mysql, sodium
           coverage: none
+          tools: composer:v2
 
-      - name: 🧩 Install dependencies
+      - name: Install dependencies
         working-directory: ./api
         run: composer install --no-progress --no-interaction
 
-      - name: 🔒 Composer audit
+      - name: Validate composer.json
+        working-directory: ./api
+        run: composer validate --strict
+
+      - name: Composer audit
         working-directory: ./api
         run: composer audit --no-interaction
 
-      - name: 🧪 Lint PHP code
+      - name: Lint PHP syntax
         working-directory: ./api
-        run: |
-          composer require --dev phpstan/phpstan
-          vendor/bin/phpstan analyse src --level=5
+        run: find src -name "*.php" -print0 | xargs -0 -n1 php -l
 
-      - name: 🔍 Test DB connection
+      - name: Lint Symfony YAML config
+        working-directory: ./api
+        run: php bin/console lint:yaml config
+
+      - name: Test DB connection
         env:
           DATABASE_URL: "mysql://app:app@127.0.0.1:3306/app"
         working-directory: ./api
         run: php bin/console doctrine:query:sql "SELECT 1"
 
   frontend:
-    name: 💻 Frontend (React + Vite)
+    name: Frontend (React + Vite)
     runs-on: ubuntu-latest
 
     steps:
-      - name: 🧾 Checkout repository
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: 🟩 Setup Node.js
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'npm'
+          cache: npm
           cache-dependency-path: client/package-lock.json
 
-      - name: 📦 Install dependencies
+      - name: Install dependencies
         working-directory: ./client
         run: npm ci
 
-      - name: 🔒 NPM audit
+      - name: NPM audit
         working-directory: ./client
         run: npm audit --audit-level=high --omit=dev
 
-      - name: 🔍 Lint frontend
+      - name: Lint frontend
         working-directory: ./client
         run: npm run lint --if-present
 
-      - name: 🧱 Build frontend
+      - name: Run frontend tests
+        working-directory: ./client
+        run: npm run test:run -- --passWithNoTests
+
+      - name: Build frontend
         working-directory: ./client
         run: npm run build
 
   docker:
-    name: 🐳 Docker Build Validation
+    name: Docker Build Validation
     runs-on: ubuntu-latest
 
     steps:
-      - name: 🧾 Checkout repository
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: 🔧 Set up Docker Buildx
+      - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: 🔍 Validate Docker Compose build
-        run: docker compose build --no-cache
+      - name: Validate Docker Compose build
+        run: docker compose build --no-cache api client

@@ -1,8 +1,0 @@
-name: Premier message
-on: [push]
-jobs:
-  say-hello:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Afficher un message
-        run: echo "Test Morgan Premier workflow"
