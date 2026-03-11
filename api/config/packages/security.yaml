@@ -1,0 +1,43 @@
+security:
+    password_hashers:
+        App\Entity\User: 'auto'
+
+    providers:
+        app_user_provider:
+            entity:
+                class: App\Entity\User
+                property: email
+
+    firewalls:
+        dev:
+            pattern: ^/(_(profiler|wdt)|css|images|js)/
+            security: false
+
+        login:
+            pattern: ^/api/login
+            stateless: true
+            json_login:
+                check_path: /api/login
+                username_path: email
+                password_path: password
+                success_handler: lexik_jwt_authentication.handler.authentication_success
+                failure_handler: lexik_jwt_authentication.handler.authentication_failure
+
+        api:
+            pattern: ^/api
+            stateless: true
+            jwt: ~
+
+    access_control:
+        - { path: ^/api/login, roles: PUBLIC_ACCESS }
+        - { path: ^/api/register, roles: PUBLIC_ACCESS }
+        - { path: ^/api/quizzes/today, roles: PUBLIC_ACCESS, methods: [GET] }
+        - { path: ^/api/quizzes/\d+$, roles: PUBLIC_ACCESS, methods: [GET] }
+        - { path: ^/api/quizzes$, roles: PUBLIC_ACCESS, methods: [GET] }
+        - { path: ^/api/quizzes/\d+/attempt, roles: ROLE_USER }
+        - { path: ^/api/animes, roles: PUBLIC_ACCESS, methods: [GET] }
+        - { path: ^/api/genres, roles: PUBLIC_ACCESS, methods: [GET] }
+        - { path: ^/api/animes, roles: ROLE_ADMIN }
+        - { path: ^/api/genres, roles: ROLE_ADMIN }
+        - { path: ^/api/quizzes, roles: ROLE_ADMIN, methods: [POST, PUT, PATCH, DELETE] }
+        - { path: ^/api, roles: ROLE_USER }

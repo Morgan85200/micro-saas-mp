@@ -1,2 +1,5 @@
-
-compose.yml
+api/node_modules
+api/vendor
+api/var
+api/config/jwt/*.pem
+client/node_modules
