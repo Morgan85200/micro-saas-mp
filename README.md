@@ -1,389 +1,171 @@
-# Guide de Gestion de Projet Solo - "Scrum Solo"
+# Microsaas - Setup Guide
 
-Guide complet pour la gestion de projet individuelle avec GitHub Projects, Issues et Pull Requests, adapté aux apprenants en développement.
+This README is the single source of truth to install and run the project.
 
-## 🎯 Philosophie : Scrum Solo
+## Stack
 
-Adaptation des méthodologies Agile/Scrum pour un développeur unique, en gardant les bénéfices organisationnels sans la complexité collaborative.
+- Frontend: React + TypeScript + Vite
+- Backend: Symfony 7 (PHP 8.2)
+- Database: MariaDB 11
+- Optional DB UI: Adminer
 
-### Rôles Unifiés
-En tant qu'apprenant solo, vous cumulez :
-- **Product Owner** : Définir les besoins et priorités
-- **Scrum Master** : Organiser et structurer le travail
-- **Developer** : Implémenter les fonctionnalités
+## Prerequisites
 
-## 🏗️ Structure du Projet GitHub
+Choose one of these setups:
 
-### 1. Configuration des Labels
+- Recommended: Docker Desktop (with Docker Compose)
+- Local/manual:
+  - Node.js 20+ and npm
+  - PHP 8.2+
+  - Composer 2+
+  - MariaDB 11 (or run only DB with Docker)
 
-**Type (préfixe type:) :**
-- `✨ type: feature` - Nouvelles fonctionnalités
-- `🐛 type: bug` - Corrections de bugs
-- `🔧 type: enhancement` - Améliorations existantes
-- `📚 type: documentation` - Documentation
-- `🧹 type: chore` - Tâches de maintenance
+## Quick Start (Recommended: Docker)
 
-**Statut (un seul par issue) :**
-- `🚧 status: in-progress` - En cours
-- `👀 status: needs-review` - Prêt pour révision
-- `⏸️ status: blocked` - Bloqué
-- `✅ status: completed` - Terminé
+1. From project root, start everything:
 
-**Priorité (optionnel) :**
-- `🔥 priority: high` - Critique pour le brief
-
-### 2. Structure des Branches
-
-**Branches Principales :**
-- `main` : Code stable, prêt pour production
-- `develop` : Branche de développement principal
-
-**Branches de Features :**
-- `feature/nom-de-la-feature` : Pour les nouvelles fonctionnalités
-- `fix/nom-du-bug` : Pour les corrections de bugs
-- `docs/nom-doc` : Pour la documentation
-- `refactor/nom-refactor` : Pour le refactoring
-
-**Exemple de nommage :**
-```
-feature/user-authentication
-fix/login-validation-error
-docs/api-endpoints
-refactor/database-connection
-```
-
-## 📋 Méthodologie de Travail
-
-### 1. Sprint Planning (Planification)
-
-**À chaque nouveau brief :** Créer un nouveau sprint/milestone
-
-**Processus :**
-1. **Créer un Milestone** pour le brief dans GitHub
-2. **Définir l'objectif** du brief (1-2 phrases)
-3. **Découper le brief** en issues/tâches
-4. **Estimer la charge** (story points ou heures)
-
-### 2. Création d'Issues Détaillées
-
-**Template d'Issue pour Feature :**
-```markdown
-# 🚀 [Titre de la fonctionnalité]
-
-## 📝 Résumé
-Description courte en 1-2 phrases de ce qu'on veut implémenter.
-
-## 🎯 Objectif
-Quel problème on résout ou quelle amélioration on apporte ?
-
-## ✅ Critères d'Acceptation
-- [ ] La fonctionnalité fait X
-- [ ] L'utilisateur peut Y  
-- [ ] Le système répond Z
-
-## 🔧 Tâches Techniques
-- [ ] Créer le modèle/schema
-- [ ] Implémenter l'endpoint API
-- [ ] Ajouter les tests
-- [ ] Documenter l'usage
-
-## 🧪 Comment Tester
-1. Étape 1 pour tester
-2. Étape 2 pour vérifier
-3. Résultat attendu
-
-## 🏷️ Labels Suggérés
-`feature`, `api`, `database`...
-```
-
-**Exemple concret - Issue pour le Brief Hello-API :**
-```markdown
-# 🚀 Endpoint de health check de la base de données
-
-## 📝 Résumé
-Créer un endpoint API qui teste la connexion à la base de données et retourne le statut.
-
-## 🎯 Objectif
-Vérifier que l'infrastructure (API + Database) fonctionne correctement avant de développer les vraies fonctionnalités.
-
-## ✅ Critères d'Acceptation
-- [ ] L'endpoint `/health` répond en GET
-- [ ] Il exécute une requête SQL simple (SELECT 1)
-- [ ] Il retourne un JSON avec le statut de la DB
-- [ ] Il gère les erreurs de connexion
-
-## 🔧 Tâches Techniques
-- [ ] Configurer la connexion à la base de données
-- [ ] Créer l'endpoint `/health`
-- [ ] Implémenter la requête de test SQL
-- [ ] Ajouter la gestion d'erreur
-- [ ] Tester avec Postman/curl
-
-## 🧪 Comment Tester
-1. Lancer `docker compose up`
-2. Appeler `GET localhost:3000/health`
-3. Vérifier la réponse JSON avec le statut
-4. Arrêter la DB et vérifier l'erreur
-
-## 🏷️ Labels Suggérés
-`feature`, `api`, `database`, `health-check`
-```
-
-**Template d'Issue pour Bug :**
-```markdown
-## 🐛 Problème
-Description claire du bug
-
-## 🔄 Reproduction
-1. Étape 1
-2. Étape 2
-3. Résultat observé
-
-## ✅ Comportement Attendu
-Ce qui devrait se passer
-
-## 🌍 Environnement
-- OS :
-- Navigateur :
-- Version :
-
-## 📸 Captures d'écran
-[Si applicable]
-```
-
-### 3. Conventions de Nommage
-
-#### Nommage des Branches
-**Format :** `type/description-kebab-case`
-
-**Types de branches :**
-- `feature/` : Nouvelles fonctionnalités
-- `fix/` : Corrections de bugs
-- `docs/` : Documentation
-- `refactor/` : Refactoring
-- `test/` : Ajout de tests
-- `chore/` : Tâches de maintenance
-
-**Exemples :**
-```
-feature/user-authentication
-feature/database-connection-test
-fix/login-validation-error
-docs/api-documentation
-refactor/clean-database-layer
-test/integration-tests
-chore/update-dependencies
-```
-
-#### Convention des Commits (Conventional Commits)
-**Format :** `type(scope): description`
-
-**Types principaux :**
-- `feat` : Nouvelle fonctionnalité
-- `fix` : Correction de bug
-- `docs` : Documentation
-- `style` : Formatage (pas de changement de code)
-- `refactor` : Refactoring de code
-- `test` : Ajout ou modification de tests
-- `chore` : Maintenance, configuration
-
-**Exemples :**
-```
-feat(auth): add user login endpoint
-fix(database): resolve connection timeout issue
-docs(api): update endpoint documentation
-test(auth): add integration tests for login
-chore(deps): update express to v4.18
-refactor(utils): extract validation helpers
-```
-
-**Scope optionnel :**
-- `auth` : authentification
-- `api` : endpoints API
-- `database` : base de données
-- `config` : configuration
-- `utils` : utilitaires
-
-### 4. Workflow de Développement
-
-**Étapes pour chaque Feature :**
-
-1. **Créer l'Issue** avec les labels appropriés
-2. **Créer la branche** selon la convention de nommage
-3. **Développer par micro-commits** (commits atomiques)
-4. **Tester localement**
-5. **Créer la Pull Request**
-6. **Auto-review** de votre code
-7. **Merger** dans develop
-8. **Fermer l'Issue**
-
-**Exemple de workflow Git :**
 ```bash
-# 1. Créer et basculer sur la nouvelle branche
-git checkout develop
-git pull origin develop
-git checkout -b feature/user-authentication
-
-# 2. Développer avec commits atomiques
-git add .
-git commit -m "feat(auth): add user model with validation"
-git commit -m "feat(auth): implement login endpoint"
-git commit -m "test(auth): add unit tests for user model"
-
-# 3. Pousser et créer la PR
-git push -u origin feature/user-authentication
-# Créer la PR via GitHub UI
-
-# 4. Après merge, nettoyer
-git checkout develop
-git pull origin develop
-git branch -d feature/user-authentication
+docker compose up --build
 ```
 
-### 4. GitHub Projects - Configuration
+2. In another terminal, run DB migrations:
 
-**Colonnes Kanban recommandées :**
-- `📋 Backlog` - Issues à traiter
-- `🎯 Sprint Actuel` - Issues du sprint en cours
-- `🚧 En Cours` - Actuellement en développement
-- `👀 Review` - Prêt pour révision
-- `✅ Terminé` - Complété ce sprint
-
-**Vues Utiles :**
-- **Vue Board** : Kanban pour le suivi quotidien
-- **Vue Table** : Liste détaillée avec filtres
-- **Vue Roadmap** : Timeline des milestones
-
-## 🎯 Micro-Features : Découpage Intelligent
-
-### Principe du Découpage
-
-**Règle des 2-8 heures :** Chaque feature doit pouvoir être implémentée en 2-8h maximum.
-
-**Exemple de découpage :**
-```
-❌ Mauvais : "Système d'authentification"
-✅ Bon découpage :
-  - Modèle utilisateur en base
-  - API de création de compte
-  - API de connexion
-  - Middleware d'authentification
-  - Interface de connexion
-  - Interface d'inscription
-  - Tests d'authentification
+```bash
+docker compose exec api php bin/console doctrine:migrations:migrate --no-interaction
 ```
 
-### Priorisation MoSCoW
+3. Open the apps:
 
-- **Must Have** 🔴 : Fonctionnalités critiques
-- **Should Have** 🟡 : Importantes mais pas critiques
-- **Could Have** 🟢 : Souhaitables si le temps le permet
-- **Won't Have** ⚪ : Exclues de ce sprint
+- Frontend: http://localhost:5173
+- API: http://localhost:8080
+- Adminer: http://localhost:8081
 
-## 📊 Suivi et Métriques
+Default DB credentials (from `compose.yml`):
 
-### Daily Solo Standup (5 min/jour)
+- Server: `database`
+- Database: `app`
+- User: `app`
+- Password: `app`
+- Root password: `root`
 
-**Questions à se poser :**
-1. Qu'ai-je accompli hier ?
-2. Que vais-je faire aujourd'hui ?
-3. Quels obstacles m'empêchent d'avancer ?
+## Local Setup (Without Full Docker)
 
-### Métriques à Suivre
+If you prefer running app processes locally:
 
-- **Vélocité** : Issues/story points complétés par sprint
-- **Burndown** : Progression dans le sprint
-- **Temps par type de tâche** : Développement vs. debugging vs. tests
-- **Cycle time** : Temps de l'issue à la mise en production
+### 1. Start database
 
-## 🛠️ Outils et Templates
+Option A (easiest): only DB in Docker
 
-### GitHub Templates
-
-**Template de Pull Request :**
-```markdown
-## 🎯 Objectif
-Description de ce que fait cette PR
-
-## 🔄 Changements
-- Changement 1
-- Changement 2
-
-## ✅ Tests
-- [ ] Tests unitaires passent
-- [ ] Tests d'intégration passent
-- [ ] Testé manuellement
-
-## 📝 Notes de Review
-Points spécifiques à vérifier lors de la review
-
-## 🔗 Issue Liée
-Closes #[numéro]
+```bash
+docker compose up -d database
 ```
 
-### Automatisations Recommandées
+Option B: use your own local MariaDB and update `DATABASE_URL`.
 
-**GitHub Actions basiques :**
-- Tests automatiques sur PR
-- Linting automatique
-- Déploiement automatique sur merge main
+### 2. Backend (`api`)
 
-## 🎓 Conseils pour Apprenants
+```bash
+cd api
+composer install
+```
 
-### Bonnes Pratiques
+Create `api/.env.local` (if missing) with at least:
 
-1. **Commencer petit** : Préférer 10 petites features à 1 énorme
-2. **Documenter au fur et à mesure** : Éviter la dette technique
-3. **Tester régulièrement** : Ne pas accumuler les bugs
-4. **Réviser son propre code** : Développer l'œil critique
-5. **Tenir un carnet de bord** : Noter les apprentissages
+```dotenv
+DATABASE_URL="mysql://app:app@127.0.0.1:3306/app"
+JWT_PASSPHRASE="change-me"
+APP_SECRET="change-me-too"
+```
 
-### Éviter les Pièges
+Generate JWT keys (if missing):
 
-- ❌ Issues trop vastes (> 8h de travail)
-- ❌ Branches qui traînent trop longtemps
-- ❌ Commits peu descriptifs
-- ❌ Oublier de fermer les issues
-- ❌ Ne pas utiliser les labels
+```bash
+php bin/console lexik:jwt:generate-keypair --skip-if-exists
+```
 
-### Progression Pédagogique
+Run migrations:
 
-**Premier brief :** Configuration et première feature simple
-**Briefs suivants :** Adoption du workflow complet
-**Projets avancés :** Optimisation et métriques
+```bash
+php bin/console doctrine:migrations:migrate --no-interaction
+```
 
-## 🚀 Mise en Place Rapide
+Start API (recommended with Symfony CLI):
 
-### Checklist de Démarrage
+```bash
+symfony serve
+```
 
-- [ ] Configurer les labels dans le repo
-- [ ] Créer les templates d'issues et PR
-- [ ] Configurer GitHub Projects avec les bonnes vues
-- [ ] Créer le premier milestone
-- [ ] Créer 3-5 premières issues bien détaillées
-- [ ] Configurer les branches de protection
-- [ ] Mettre en place les premières automations
+If Symfony CLI is not installed, use:
 
-### Premier Sprint Exemple
+```bash
+php -S 0.0.0.0:8080 -t public
+```
 
-**Objectif :** "Mettre en place l'architecture de base de l'application"
+### 3. Frontend (`client`)
 
-**Issues :**
-1. Configuration de l'environnement de développement
-2. Structure de base du projet
-3. Configuration de la base de données
-4. Premier endpoint API
-5. Tests de base et CI/CD
+```bash
+cd client
+npm install
+```
 
----
+Create `client/.env.local`:
 
-*Ce guide évolue avec votre expérience. N'hésitez pas à l'adapter selon vos besoins et apprentissages !*
-## Securite
+```dotenv
+VITE_API_BASE_URL=http://localhost:8080
+```
 
-Le projet applique une base de securite sur plusieurs niveaux :
+Start frontend:
 
-- Variables d'environnement : les secrets ne sont pas stockes dans `.env` versionne, mais dans `api/.env.local` (ignore par Git).
-- API headers : les reponses `/api/*` ajoutent des headers de securite (`X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, `Permissions-Policy`, `Content-Security-Policy`).
-- CORS : configure via `api/config/packages/nelmio_cors.yaml`.
-- Docker non-root : les conteneurs API et client sont executes avec un utilisateur non root.
-- CI audits : la pipeline execute `composer audit` et `npm audit` en plus des lints/builds.
+```bash
+npm run dev
+```
+
+Frontend URL: http://localhost:5173
+
+## Useful Commands
+
+### Frontend (`client`)
+
+```bash
+npm run dev
+npm run build
+npm run lint
+npm run test
+npm run test:run
+```
+
+### Backend (`api`)
+
+```bash
+php bin/console doctrine:migrations:migrate
+composer lint
+```
+
+### Optional: import anime data
+
+Requires API running on `http://localhost:8080`.
+
+```bash
+cd api
+npm install
+node scripts/importAnimes.js --start=1 --limit=10
+```
+
+## Reset / Rebuild
+
+Full Docker rebuild:
+
+```bash
+docker compose down -v
+docker compose up --build
+```
+
+Then rerun migrations.
+
+## Troubleshooting
+
+- Port already in use: free `5173`, `8080`, `8081`, `3306` or change mappings in `compose.yml`.
+- API cannot connect DB: check `DATABASE_URL` host:
+  - Docker: use `database`
+  - Local API + local DB: use `127.0.0.1`
+- Login/JWT errors: verify key files exist in `api/config/jwt/` and `JWT_PASSPHRASE` is correct.

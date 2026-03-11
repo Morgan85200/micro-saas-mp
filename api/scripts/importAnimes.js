@@ -11,7 +11,7 @@ const args = process.argv.slice(2);
 const startArg = args.find((a) => a.startsWith("--start="));
 const limitArg = args.find((a) => a.startsWith("--limit="));
 const START_PAGE = startArg ? parseInt(startArg.split("=")[1]) : 1;
-const PAGE_LIMIT = limitArg ? parseInt(limitArg.split("=")[1]) : 10; // default = 10 pages (500 anime)
+const PAGE_LIMIT = limitArg ? parseInt(limitArg.split("=")[1]) : 10; // 10 pages = 500 animes
 
 // GraphQL query
 const query = `
@@ -54,7 +54,7 @@ async function fetchAnimesFromAniList(page) {
   return json.data.Page.media;
 }
 
-// Cache to avoid duplicate genre creations
+// Prevent duplicate genres
 const genreCache = new Map();
 
 async function getOrCreateGenre(name) {

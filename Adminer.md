@@ -1,7 +1,7 @@
-Fonctionnement d'adminer :
+How to access Adminer interface :
 
-1 - Run le container sur docker
-2 - Aller sur l'url : http://localhost:8081
+1 - Having the Adminer docker container running
+2 - Go to : http://localhost:8081
 3 - Authentification
     server : database
     username : app

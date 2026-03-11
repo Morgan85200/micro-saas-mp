@@ -168,18 +168,21 @@
   border-radius: 12px;
   overflow: hidden;
   border: 1px solid rgba(28, 23, 20, 0.2);
-  max-height: 320px;
   display: flex;
   align-items: center;
   justify-content: center;
   background: rgba(28, 23, 20, 0.05);
+  min-height: 120px;
 }
 
 .hint-image img {
-  padding: 3%;
-  height: 100%;
-  width: auto;
-  object-fit: cover;
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  max-height: min(60vh, 320px);
+  height: auto;
+  object-fit: contain;
+  padding: 0.75rem;
 }
 
 .hint-text {
@@ -432,5 +435,10 @@
 
   .guess-row {
     grid-template-columns: 1fr;
+  }
+
+  .hint-image img {
+    max-height: 45vh;
+    padding: 0.5rem;
   }
 }
